@@ -1,5 +1,21 @@
-import { Package, Shield, Cpu, CircuitBoard, HardDrive, Network, Monitor, Hash } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Package,
+  Shield,
+  Cpu,
+  CircuitBoard,
+  HardDrive,
+  Network,
+  Monitor,
+  Hash,
+  FolderCode,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -9,25 +25,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { set } from "date-fns";
+import { toast } from "sonner";
+
+type ServiceType =
+  | "Internal RDP"
+  | "External RDP"
+  | "Internal Linux"
+  | "External Linux";
 
 interface ServiceVM {
-  id: string;
-  name: string;
-  type: string;
+  productId: string;
+  productName?: string;
+  Os: string;
+  serviceType: ServiceType;
   cpu: number;
   ram: number;
   storage: number;
   ipSet: string;
   price: number;
-  enabled: boolean;
+  Stock?: boolean;
+  createdAt?: Date;
 }
 
 const AdminProducts = () => {
   const navigate = useNavigate();
   const ipSets = ["103.211", "103.157", "157.15", "38.3", "161.248"];
-  
+  const [services, setService] = useState<ServiceVM[]>([]);
+
   const generateServicesForIpSets = () => {
     const baseServices = [
       {
@@ -84,11 +112,11 @@ const AdminProducts = () => {
         ram: 32,
         storage: 45,
         basePrice: 500,
-      }
+      },
     ];
 
-    return baseServices.flatMap(service => 
-      ipSets.map(ipSet => ({
+    return baseServices.flatMap((service) =>
+      ipSets.map((ipSet) => ({
         id: `${service.baseId}-${ipSet}`,
         name: service.name,
         type: service.type,
@@ -102,11 +130,12 @@ const AdminProducts = () => {
     );
   };
 
-  const services: ServiceVM[] = generateServicesForIpSets();
-  const [serviceStates, setServiceStates] = useState<{ [key: string]: boolean }>(() => {
+  const [serviceStates, setServiceStates] = useState<{
+    [key: string]: boolean;
+  }>(() => {
     const initialStates: { [key: string]: boolean } = {};
-    services.forEach(service => {
-      initialStates[service.id] = service.enabled;
+    services.forEach((service) => {
+      initialStates[service?.productId] = service.Stock || false;
     });
     return initialStates;
   });
@@ -119,28 +148,79 @@ const AdminProducts = () => {
 
   const filteredServices = services.filter((service) => {
     return (
-      (selectedType === "all" || service.type === selectedType) &&
+      (selectedType === "all" || service?.serviceType.includes(selectedType)) &&
       (selectedCPU === "all" || service.cpu === parseInt(selectedCPU)) &&
       (selectedRAM === "all" || service.ram === parseInt(selectedRAM)) &&
-      (selectedStorage === "all" || service.storage === parseInt(selectedStorage)) &&
+      (selectedStorage === "all" ||
+        service.storage === parseInt(selectedStorage)) &&
       (selectedIPSet === "all" || service.ipSet === selectedIPSet)
     );
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/user/all_plans", {
+          withCredentials: true,
+        });
+        if (response?.data) {
+          setService(response?.data);
+          
+          setServiceStates((prev) => {
+            const initialStates: { [key: string]: boolean } = {};
+            response?.data.forEach((service) => {
+              initialStates[service?.productId] = service.Stock || false;
+            });
+            return initialStates;
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      } finally {
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleEdit = (serviceId: string) => {
     navigate(`/admin/products/edit/${serviceId}`);
   };
 
-  const handleDelete = (serviceId: string) => {
-    console.log("Delete service:", serviceId);
+  const handleDelete = async (serviceId: string) => {
+    try {
+      const res = await axios.post(`/api/admin/delete_product`, { productId: serviceId }, {withCredentials: true});
+      if(res?.data){
+        toast.success(res?.data?.message);
+        setService((prev) => prev.filter((service) => service.productId !== serviceId));
+      }
+    } catch (error) {
+      toast.error("Failed to delete service.");
+    }
   };
 
-  const handleToggleService = (serviceId: string) => {
-    setServiceStates(prev => ({
-      ...prev,
-      [serviceId]: !prev[serviceId]
-    }));
-    console.log(`Service ${serviceId} ${serviceStates[serviceId] ? 'disabled' : 'enabled'}`);
+  const handleToggleService = async (serviceId: string) => {
+    try {
+      const response:any =  await axios.post(
+        `/api/admin/stock_product`,
+        {
+          productId: serviceId,
+          value: !serviceStates[serviceId],
+        },
+        {
+          withCredentials: true,
+        }
+      )
+      if(response) {
+        setServiceStates((prev) => ({
+          ...prev,
+          [serviceId]: !prev[serviceId],
+        }));
+      }
+      toast.success(response?.data?.message);
+    } catch (error) {
+      toast.error("Failed to update service state.");
+    }
+ 
   };
 
   return (
@@ -148,9 +228,11 @@ const AdminProducts = () => {
       <div className="bg-background/50 backdrop-blur-sm rounded-lg p-6 border border-border">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Products Management</h1>
-          <Button onClick={() => navigate("/admin/products/add")}>Add New Product</Button>
+          <Button onClick={() => navigate("/admin/products/add")}>
+            Add New Product
+          </Button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <Select onValueChange={setSelectedType} value={selectedType}>
             <SelectTrigger>
@@ -158,9 +240,16 @@ const AdminProducts = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="Linux-Ubuntu">Linux-Ubuntu</SelectItem>
-              <SelectItem value="Linux-CentOS">Linux-CentOS</SelectItem>
-              <SelectItem value="Windows">Windows</SelectItem>
+              {[
+                "Internal RDP",
+                "External RDP",
+                "Internal Linux",
+                "External Linux",
+              ].map((type, index) => (
+                <SelectItem key={index} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -218,34 +307,38 @@ const AdminProducts = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredServices.map((service) => (
-            <Card key={service.id} className="bg-card border-border">
+            <Card key={service?.productId} className="bg-card border-border">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {service.type === "Windows" ? (
+                    {service?.serviceType.includes("RDP") ? (
                       <Monitor className="h-5 w-5 text-primary" />
                     ) : (
                       <Package className="h-5 w-5 text-primary" />
                     )}
-                    <CardTitle className="text-lg">{service.name}</CardTitle>
+                    <CardTitle className="text-lg">{service.Os}</CardTitle>
                   </div>
                   <Switch
-                    checked={serviceStates[service.id]}
-                    onCheckedChange={() => handleToggleService(service.id)}
+                    checked={serviceStates[service?.productId]}
+                    onCheckedChange={() =>
+                      handleToggleService(service?.productId)
+                    }
                   />
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <Hash className="h-4 w-4 text-muted-foreground" />
                   <CardDescription className="font-mono">
-                    {service.id}
+                    {service?.productId}
                   </CardDescription>
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   <Network className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">IP Set: {service.ipSet}</span>
+                  <span className="text-sm font-medium">
+                    IP Set: {service.ipSet}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent>
@@ -260,24 +353,38 @@ const AdminProducts = () => {
                       <span className="text-sm">{service.ram} GB RAM</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md">
-                    <HardDrive className="h-4 w-4 text-primary" />
-                    <span className="text-sm">{service.storage} GB Storage</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md">
+                      <HardDrive className="h-4 w-4 text-primary" />
+                      <span className="text-sm">
+                        {service.storage} GB Storage
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md">
+                      <FolderCode className="h-4 w-4 text-primary" />
+                      <span className="text-sm">
+                        {service?.serviceType.includes("RDP")
+                          ? "Windows"
+                          : "Linux"}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-border">
-                    <span className="text-lg font-semibold">{service.price} NC</span>
+                    <span className="text-lg font-semibold">
+                      {service.price} NC
+                    </span>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
-                        onClick={() => handleEdit(service.id)}
+                        onClick={() => handleEdit(service?.productId)}
                       >
                         Edit
                       </Button>
-                      <Button 
-                        variant="destructive" 
+                      <Button
+                        variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(service.id)}
+                        onClick={() => handleDelete(service?.productId)}
                       >
                         Delete
                       </Button>

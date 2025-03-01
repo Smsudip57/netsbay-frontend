@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import axios from "axios";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -21,31 +22,31 @@ const EditProduct = () => {
     productId: "",
     productName: "",
     ipSet: "",
-    networkType: "",
+    serviceType: "",
     cpu: "",
     ram: "",
     storage: "",
-    inStock: true,
-    os: "",
+    Stock: true,
+    Os: "",
     price: "", // Price in NC
   });
 
   useEffect(() => {
-    // Here you would typically fetch the product data using the ID
-    console.log("Fetching product with ID:", id);
-    // Simulated data fetch
-    setFormData({
-      productId: "PRD61234",
-      productName: "Sample Product",
-      ipSet: "103.211",
-      networkType: "internal",
-      cpu: "2",
-      ram: "4",
-      storage: "20",
-      inStock: true,
-      os: "Linux-Ubuntu",
-      price: "29.99", // Sample price
-    });
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`/api/user/get_product`, {
+          params: { productId: id },
+          withCredentials: true,
+        });
+        if (res?.data) {
+          setFormData(res?.data);
+        }
+      } catch (error) {
+
+      }
+    };
+
+    fetchData();
   }, [id]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -55,18 +56,34 @@ const EditProduct = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.productName || !formData.ipSet || !formData.networkType || 
-        !formData.cpu || !formData.ram || !formData.storage || !formData.os || !formData.price) {
+
+    if (
+      !formData.productName ||
+      !formData.ipSet ||
+      !formData.serviceType ||
+      !formData.cpu ||
+      !formData.ram ||
+      !formData.storage ||
+      !formData.Os ||
+      !formData.price
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
 
-    console.log("Updating product:", formData);
-    toast.success("Product updated successfully");
-    navigate("/admin/products");
+    try {
+      const res = await axios.post("/api/admin/update_product", formData, {
+        withCredentials: true,
+      })
+      if(res?.data) {
+        toast.success("Product updated successfully");
+        navigate("/admin/products");
+      }
+    } catch (error) {
+      toast.error("Failed to update product");
+    }
   };
 
   return (
@@ -84,7 +101,10 @@ const EditProduct = () => {
             <CardTitle>Product Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={(e) =>{
+              e.preventDefault();
+              handleSubmit(e);
+            }} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="productId">Product ID</Label>
@@ -101,13 +121,15 @@ const EditProduct = () => {
                   <Input
                     id="productName"
                     value={formData.productName}
-                    onChange={(e) => handleInputChange("productName", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("productName", e.target.value)
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="ipSet">IP Set</Label>
-                  <Select 
+                  <Select
                     value={formData.ipSet}
                     onValueChange={(value) => handleInputChange("ipSet", value)}
                   >
@@ -125,17 +147,22 @@ const EditProduct = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="networkType">Network Type</Label>
-                  <Select 
-                    value={formData.networkType}
-                    onValueChange={(value) => handleInputChange("networkType", value)}
+                  <Label htmlFor="serviceType">Network Type</Label>
+                  <Select
+                    value={formData.serviceType}
+                    onValueChange={(value) =>
+                      handleInputChange("serviceType", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Network Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="internal">Internal</SelectItem>
-                      <SelectItem value="external">External</SelectItem>
+                      {["Internal RDP","External RDP","Internal Linux","External Linux"].map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -166,25 +193,20 @@ const EditProduct = () => {
                     id="storage"
                     type="number"
                     value={formData.storage}
-                    onChange={(e) => handleInputChange("storage", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("storage", e.target.value)
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="os">Operating System</Label>
-                  <Select 
-                    value={formData.os}
-                    onValueChange={(value) => handleInputChange("os", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select OS" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Linux-Ubuntu">Linux-Ubuntu</SelectItem>
-                      <SelectItem value="Linux-CentOS">Linux-CentOS</SelectItem>
-                      <SelectItem value="Windows">Windows</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="Os">Operating System</Label>
+                  <Input
+                    id="Os"
+                    type="text"
+                    value={formData.Os}
+                    onChange={(e) => handleInputChange("Os", e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -204,11 +226,15 @@ const EditProduct = () => {
                   <Label>Stock Availability</Label>
                   <div className="flex items-center space-x-2">
                     <Switch
-                      checked={formData.inStock}
-                      onCheckedChange={(checked) => handleInputChange("inStock", checked)}
+                      checked={formData.Stock}
+                      onCheckedChange={(checked) =>
+                        handleInputChange("Stock", checked)
+                      }
                     />
                     <span className="text-sm text-muted-foreground">
-                      {formData.inStock ? "Product is in stock" : "Product is out of stock"}
+                      {formData.Stock
+                        ? "Product is in stock"
+                        : "Product is out of stock"}
                     </span>
                   </div>
                 </div>

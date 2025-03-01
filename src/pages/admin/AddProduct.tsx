@@ -13,16 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import axios from "axios";
 
-const generateProductId = () => {
-  const randomNum = Math.floor(10000 + Math.random() * 90000);
-  return `PRD${randomNum}`;
-};
+
 
 const AddProduct = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    productId: generateProductId(),
+    productId: "",
     productName: "",
     ipSet: "",
     networkType: "",
@@ -41,7 +39,7 @@ const AddProduct = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.productName || !formData.ipSet || !formData.networkType || 
@@ -49,11 +47,32 @@ const AddProduct = () => {
       toast.error("Please fill in all fields");
       return;
     }
+    try {
+      const res = await axios.post("/api/admin/add_product", formData, {withCredentials: true});
+      if(res?.data?.success) {
+        toast.success("Product added successfully");
+        navigate("/admin/products");
+      }
+    } catch (error) {
+      toast.error("Failed to add product");
+    }
 
-    console.log("Saving product:", formData);
-    toast.success("Product added successfully");
-    navigate("/admin/products");
   };
+
+  useEffect(() => {
+    const generateProductId = async() => {
+      try {
+        const res = await axios.get("/api/admin/generate_id",{withCredentials: true}); 
+        setFormData((prev) => ({
+          ...prev,
+          productId: res?.data?.id,
+        }));
+      } catch (error) {
+        console.error("Error generating product ID:", error);
+      }
+    };
+    generateProductId();
+  }, []);
 
   return (
     <div className="p-6 flex-1 bg-background">
@@ -70,7 +89,10 @@ const AddProduct = () => {
             <CardTitle>Product Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit(e);
+            }} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="productId">Product ID</Label>
@@ -109,14 +131,17 @@ const AddProduct = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="networkType">Network Type</Label>
+                  <Label htmlFor="networkType">VM Type</Label>
                   <Select onValueChange={(value) => handleInputChange("networkType", value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Network Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="internal">Internal</SelectItem>
-                      <SelectItem value="external">External</SelectItem>
+                      {
+                        ["Internal RDP","External RDP","Internal Linux","External Linux"].map((networkType, index) => (
+                          <SelectItem key={index} value={networkType}>{networkType}</SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
@@ -155,17 +180,14 @@ const AddProduct = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="os">Operating System</Label>
-                  <Select onValueChange={(value) => handleInputChange("os", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select OS" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Linux-Ubuntu">Linux-Ubuntu</SelectItem>
-                      <SelectItem value="Linux-CentOS">Linux-CentOS</SelectItem>
-                      <SelectItem value="Windows">Windows</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <Label htmlFor="os">Operating System</Label>
+                  <Input
+                    id="os"
+                    type="text"
+                    value={formData.os}
+                    onChange={(e) => handleInputChange("os", e.target.value)}
+                    placeholder="OS name"
+                  />
                 </div>
 
                 <div className="space-y-2">

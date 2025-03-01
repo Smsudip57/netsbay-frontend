@@ -1,15 +1,36 @@
-import { useState } from "react";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { useEffect, useState } from "react";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
+import axios from "axios";
 
 const formSchema = z.object({
   productType: z.string(),
@@ -29,69 +50,88 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type ServiceType =
+  | "Internal RDP"
+  | "External RDP"
+  | "Internal Linux"
+  | "External Linux";
 
-const products = [
-  {
-    id: "ubuntu-internal",
-    name: "Ubuntu Server (Internal)",
-    type: "internal",
-    os: "Linux",
-    ipSet: "103.211",
-    cpu: 2,
-    ram: 2,
-    storage: 10,
-  },
-  {
-    id: "centos-internal",
-    name: "CentOS Server (Internal)",
-    type: "internal",
-    os: "Linux",
-    ipSet: "103.211",
-    cpu: 4,
-    ram: 4,
-    storage: 20,
-  },
-  {
-    id: "ubuntu-external",
-    name: "Ubuntu Server (External)",
-    type: "external",
-    os: "Linux",
-    ipSet: "103.157",
-    cpu: 4,
-    ram: 8,
-    storage: 30,
-  },
-  {
-    id: "centos-external",
-    name: "CentOS Server (External)",
-    type: "external",
-    os: "Linux",
-    ipSet: "103.157",
-    cpu: 8,
-    ram: 16,
-    storage: 50,
-  },
-  {
-    id: "windows-internal",
-    name: "Windows Server (Internal)",
-    type: "internal",
-    os: "Windows",
-    ipSet: "103.211",
-    cpu: 4,
-    ram: 8,
-    storage: 50,
-  },
-  {
-    id: "windows-external",
-    name: "Windows Server (External)",
-    type: "external",
-    os: "Windows",
-    ipSet: "103.157",
-    cpu: 8,
-    ram: 16,
-    storage: 100,
-  },
-];
+interface Product {
+  productId: string;
+  productName?: string;
+  Os: string;
+  serviceType: ServiceType;
+  cpu: number;
+  ram: number;
+  storage: number;
+  ipSet: string;
+  price: number;
+  Stock?: boolean;
+  createdAt?: Date;
+}
+
+// const products = [
+//   {
+//     id: "ubuntu-internal",
+//     name: "Ubuntu Server (Internal)",
+//     type: "internal",
+//     os: "Linux",
+//     ipSet: "103.211",
+//     cpu: 2,
+//     ram: 2,
+//     storage: 10,
+//   },
+//   {
+//     id: "centos-internal",
+//     name: "CentOS Server (Internal)",
+//     type: "internal",
+//     os: "Linux",
+//     ipSet: "103.211",
+//     cpu: 4,
+//     ram: 4,
+//     storage: 20,
+//   },
+//   {
+//     id: "ubuntu-external",
+//     name: "Ubuntu Server (External)",
+//     type: "external",
+//     os: "Linux",
+//     ipSet: "103.157",
+//     cpu: 4,
+//     ram: 8,
+//     storage: 30,
+//   },
+//   {
+//     id: "centos-external",
+//     name: "CentOS Server (External)",
+//     type: "external",
+//     os: "Linux",
+//     ipSet: "103.157",
+//     cpu: 8,
+//     ram: 16,
+//     storage: 50,
+//   },
+//   {
+//     id: "windows-internal",
+//     name: "Windows Server (Internal)",
+//     type: "internal",
+//     os: "Windows",
+//     ipSet: "103.211",
+//     cpu: 4,
+//     ram: 8,
+//     storage: 50,
+//   },
+//   {
+//     id: "windows-external",
+//     name: "Windows Server (External)",
+//     type: "external",
+//     os: "Windows",
+//     ipSet: "103.157",
+//     cpu: 8,
+//     ram: 16,
+//     storage: 100,
+//   },
+// ];
 
 const providers = [
   { id: "aws", name: "Amazon Web Services (AWS)" },
@@ -100,19 +140,22 @@ const providers = [
   { id: "digitalocean", name: "DigitalOcean" },
   { id: "linode", name: "Linode" },
   { id: "vultr", name: "Vultr" },
-  { id: "other", name: "Other Provider" }
+  { id: "other", name: "Other Provider" },
 ];
 
 export function ServiceForm() {
-  const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isBulkMode, setIsBulkMode] = useState(false);
-  const [verifiedData, setVerifiedData] = useState<Array<{
-    ip: string;
-    username: string;
-    password: string;
-    vmId?: string;
-    hashCode?: string;
-  }>>([]);
+  const [verifiedData, setVerifiedData] = useState<
+    Array<{
+      ip: string;
+      username: string;
+      password: string;
+      vmId?: string;
+      hashCode?: string;
+    }>
+  >([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -132,11 +175,27 @@ export function ServiceForm() {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get("/api/user/all_plans", {
+          withCredentials: true,
+        });
+        setProducts(response?.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const onSubmit = async(data: FormValues) => {
+    let reqData = []
     if (isBulkMode && data.bulkData) {
-      const lines = data.bulkData.split('\n').filter(line => line.trim());
-      lines.forEach(line => {
-        const [ip, username, password, ...rest] = line.split(':');
+      const lines = data.bulkData.split("\n").filter((line) => line.trim());
+      lines.forEach((line) => {
+        const [ip, username, password, ...rest] = line.split(":");
         const serviceData = {
           ...data,
           ipAddress: ip,
@@ -144,28 +203,41 @@ export function ServiceForm() {
           password,
         };
 
-        if (selectedProduct?.type === 'internal') {
+        if (selectedProduct.serviceType.includes("Internal")) {
           serviceData.vmId = rest[0];
-        } else if (selectedProduct?.type === 'external' && selectedProduct?.os === 'Linux') {
+        } else if (
+          selectedProduct.serviceType.includes("External") &&
+          selectedProduct.serviceType.includes("Linux")
+        ) {
           serviceData.hashCode = rest[0];
         }
 
-        console.log("Processing bulk service:", serviceData);
+        reqData.push(serviceData);
       });
     } else {
-      console.log("Form submitted:", data);
+      reqData.push(data);
+    }
+    try {
+      const res = await axios.post("/api/admin/add_services", reqData, {
+        withCredentials: true,
+      })
+      if(res?.data){
+        toast.success(res?.data?.message);
+      }
+    } catch (error) {
+      toast.error("Failed to add service.");
     }
   };
 
   const handleProductSelect = (productId: string) => {
-    const product = products.find((p) => p.id === productId);
+    const product = products.find((p) => p.productId === productId);
     if (product) {
       setSelectedProduct(product);
       form.setValue("ipSet", product.ipSet);
       form.setValue("cpu", product.cpu);
       form.setValue("ram", product.ram);
       form.setValue("storage", product.storage);
-      form.setValue("os", product.os);
+      form.setValue("os", product.Os);
     }
   };
 
@@ -176,17 +248,18 @@ export function ServiceForm() {
       return;
     }
 
-    const lines = bulkData.split('\n').filter(line => line.trim());
+    const lines = bulkData.split("\n").filter((line) => line.trim());
     const parsedData: typeof verifiedData = [];
     let hasErrors = false;
 
     lines.forEach((line, index) => {
-      const parts = line.split(':');
-      const isValid = (
-        selectedProduct.type === "internal" ? parts.length === 4 :
-        selectedProduct.type === "external" && selectedProduct.os === "Linux" ? parts.length === 4 :
-        parts.length === 3
-      );
+      const parts = line.split(":");
+      const isValid = selectedProduct.serviceType.includes("Internal")
+        ? parts.length === 4
+        : selectedProduct.serviceType.includes("External") &&
+          selectedProduct.serviceType.includes("Linux")
+        ? parts.length === 4
+        : parts.length === 3;
 
       if (!isValid) {
         toast.error(`Line ${index + 1}: Invalid format`);
@@ -201,15 +274,18 @@ export function ServiceForm() {
         return;
       }
 
-      const entry: typeof verifiedData[0] = {
+      const entry: (typeof verifiedData)[0] = {
         ip: ip.trim(),
         username: username.trim(),
         password: password.trim(),
       };
 
-      if (selectedProduct.type === "internal") {
+      if (selectedProduct.serviceType.includes("Internal")) {
         entry.vmId = extra?.trim();
-      } else if (selectedProduct.type === "external" && selectedProduct.os === "Linux") {
+      } else if (
+        selectedProduct.serviceType.includes("External") &&
+        selectedProduct.serviceType.includes("Linux")
+      ) {
         entry.hashCode = extra?.trim();
       }
 
@@ -226,10 +302,13 @@ export function ServiceForm() {
 
   const getBulkFormatExample = () => {
     if (!selectedProduct) return "";
-    
-    if (selectedProduct.type === "internal") {
+
+    if (selectedProduct.serviceType.includes("Internal")) {
       return "IP:Username:Password:VMID\nExample:\n192.168.1.1:admin:pass123:VM001";
-    } else if (selectedProduct.type === "external" && selectedProduct.os === "Linux") {
+    } else if (
+      selectedProduct.serviceType.includes("External") &&
+      selectedProduct.serviceType.includes("Linux")
+    ) {
       return "IP:Username:Password:HashCode\nExample:\n192.168.1.1:admin:pass123:hash123";
     } else {
       return "IP:Username:Password\nExample:\n192.168.1.1:admin:pass123";
@@ -256,10 +335,12 @@ export function ServiceForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Product Type</FormLabel>
-              <Select onValueChange={(value) => {
-                field.onChange(value);
-                handleProductSelect(value);
-              }}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  handleProductSelect(value);
+                }}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a product" />
@@ -267,8 +348,11 @@ export function ServiceForm() {
                 </FormControl>
                 <SelectContent>
                   {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name} - {product.type === "internal" ? "Internal" : "External"} ({product.ipSet})
+                    <SelectItem
+                      key={product?.productId}
+                      value={product?.productId}
+                    >
+                      {product?.Os} - {product?.serviceType} ({product.ipSet})
                       {" | "}
                       {product.cpu} CPU, {product.ram}GB RAM
                     </SelectItem>
@@ -340,7 +424,7 @@ export function ServiceForm() {
               />
             </div>
 
-            {selectedProduct.type === "external" && isBulkMode && (
+            {selectedProduct.serviceType.includes("External") && isBulkMode && (
               <>
                 <FormField
                   control={form.control}
@@ -362,7 +446,10 @@ export function ServiceForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Purchase Provider</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a provider" />
@@ -409,7 +496,8 @@ export function ServiceForm() {
                         </Button>
                         <FormMessage />
                         <p className="text-sm text-muted-foreground">
-                          Enter one service per line in the format shown in the placeholder.
+                          Enter one service per line in the format shown in the
+                          placeholder.
                         </p>
                       </div>
                     </FormItem>
@@ -424,12 +512,13 @@ export function ServiceForm() {
                           <TableHead>IP Address</TableHead>
                           <TableHead>Username</TableHead>
                           <TableHead>Password</TableHead>
-                          {selectedProduct.type === "internal" && (
+                          {selectedProduct.serviceType.includes("Internal") && (
                             <TableHead>VM ID</TableHead>
                           )}
-                          {selectedProduct.type === "external" && selectedProduct.os === "Linux" && (
-                            <TableHead>Hash Code</TableHead>
-                          )}
+                          {selectedProduct.serviceType.includes("External") &&
+                            selectedProduct.Os === "Linux" && (
+                              <TableHead>Hash Code</TableHead>
+                            )}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -438,12 +527,13 @@ export function ServiceForm() {
                             <TableCell>{item.ip}</TableCell>
                             <TableCell>{item.username}</TableCell>
                             <TableCell>{item.password}</TableCell>
-                            {selectedProduct.type === "internal" && (
-                              <TableCell>{item.vmId}</TableCell>
-                            )}
-                            {selectedProduct.type === "external" && selectedProduct.os === "Linux" && (
-                              <TableCell>{item.hashCode}</TableCell>
-                            )}
+                            {selectedProduct.serviceType.includes(
+                              "Internal"
+                            ) && <TableCell>{item.vmId}</TableCell>}
+                            {selectedProduct.serviceType.includes("External") &&
+                              selectedProduct.Os === "Linux" && (
+                                <TableCell>{item.hashCode}</TableCell>
+                              )}
                           </TableRow>
                         ))}
                       </TableBody>
@@ -453,7 +543,7 @@ export function ServiceForm() {
               </>
             ) : (
               <>
-                {selectedProduct.type === "internal" && (
+                {selectedProduct.serviceType.includes("Internal") && (
                   <FormField
                     control={form.control}
                     name="vmId"
@@ -469,7 +559,7 @@ export function ServiceForm() {
                   />
                 )}
 
-                {selectedProduct.type === "external" && (
+                {selectedProduct.serviceType.includes("External") && (
                   <>
                     <FormField
                       control={form.control}
@@ -491,7 +581,10 @@ export function ServiceForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Purchase Provider</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a provider" />
@@ -499,7 +592,10 @@ export function ServiceForm() {
                             </FormControl>
                             <SelectContent>
                               {providers.map((provider) => (
-                                <SelectItem key={provider.id} value={provider.id}>
+                                <SelectItem
+                                  key={provider.id}
+                                  value={provider.id}
+                                >
                                   {provider.name}
                                 </SelectItem>
                               ))}
@@ -510,7 +606,7 @@ export function ServiceForm() {
                       )}
                     />
 
-                    {selectedProduct.os === "Linux" && (
+                    {selectedProduct.serviceType.includes("Linux") && (
                       <FormField
                         control={form.control}
                         name="hashCode"

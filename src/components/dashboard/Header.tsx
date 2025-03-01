@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { useAppContext } from "@/context/context";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -57,6 +58,8 @@ export function Header() {
     }
   ]);
 
+  const { loading,user,logout } = useAppContext();
+
   const clearNotification = (id: number) => {
     setNotifications(notifications.filter(notification => notification.id !== id));
   };
@@ -92,7 +95,7 @@ export function Header() {
           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors duration-200"
         >
           <WalletIcon className="h-5 w-5 text-primary" />
-          <span className="font-medium text-sm">250.00 NC</span>
+          <span className="font-medium text-sm">{user?.balance} NC</span>
         </Link>
 
         <div className="flex items-center space-x-4">

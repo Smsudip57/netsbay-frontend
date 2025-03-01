@@ -3,19 +3,35 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 
-interface UserType {
-  firstName: string;
-  lastName: string;
-  email: string;
-  whatsapp: string;
-  role: string;
+ interface Address {
   street: string;
   city: string;
   state: string;
   country: string;
   pincode: string;
+}
+
+ interface Profile {
+  name?: string;
+  avatarUrl?: string;
+}
+
+ type UserRole = 'user' | 'admin';
+
+ interface UserType {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  whatsapp: string;
+  address: Address;
   organizationName?: string;
   gstNumber?: string;
+  role: UserRole;
+  createdAt?: Date;
+  balance?: number;
+  profile?: Profile;
+  isActive?: boolean;
 }
 
 interface AppContextType {

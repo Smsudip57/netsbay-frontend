@@ -1,5 +1,15 @@
-import { useState } from "react";
-import { Server, CheckCircle, CircleSlash, XCircle, Filter, List, Grid, Globe, Calendar } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Server,
+  CheckCircle,
+  CircleSlash,
+  XCircle,
+  Filter,
+  List,
+  Grid,
+  Globe,
+  Calendar,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
 
 // Mock data for demonstration - admin version includes more details
 const mockServices = [
@@ -72,7 +84,7 @@ const AdminServices = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [viewType, setViewType] = useState<"list" | "cards">("list");
-
+  const [mockServices, setMockServices] = useState<any>([]);
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "online":
@@ -88,11 +100,64 @@ const AdminServices = () => {
     }
   };
 
-  const filteredServices = mockServices.filter((service) => {
-    const matchesStatus = statusFilter === "all" || service.status === statusFilter;
-    const matchesType = typeFilter === "all" || service.type === typeFilter;
+  const filteredServices = mockServices.filter((service: any) => {
+    const matchesStatus =
+      statusFilter === "all" || service.status === statusFilter;
+    const matchesType =
+      typeFilter === "all" ||
+      service?.relatedProduct?.serviceType === typeFilter;
     return matchesStatus && matchesType;
   });
+
+  const getExpiryDate = (purchaseDate) => {
+    const expiryDate = new Date(purchaseDate);
+    expiryDate.setDate(expiryDate.getDate() + 30); // Add 30 days
+
+    return expiryDate.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      const res = await axios.delete(`/api/admin/services`, {
+        params: { serviceId },
+        withCredentials: true,
+      });
+
+      if (res?.data) {
+        setMockServices((prevServices: any) =>
+          prevServices.filter((service: any) => service.serviceId !== serviceId)
+        );
+        toast.success(res?.data?.message);
+      }
+    } catch (error) {
+      console.error("Error deleting service:", error);
+      toast.error("Failed to delete service.");
+    }
+  };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axios.get("/api/admin/services", {
+          withCredentials: true,
+        });
+        if (response?.data) {
+          setMockServices(response?.data);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const renderListView = (services: typeof mockServices) => (
     <Table>
@@ -108,39 +173,51 @@ const AdminServices = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {services.map((service) => (
-          <TableRow key={service.id}>
+        {services.map((service: any) => (
+          <TableRow key={service?.serviceId}>
             <TableCell className="font-medium">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-muted-foreground" />
-                {service.ip}
+                {service?.ipAddress}
               </div>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                {getStatusIcon(service.status)}
+                {getStatusIcon(service?.status)}
                 <span className="capitalize">{service.status}</span>
               </div>
             </TableCell>
             <TableCell>
-              <Link to={`/admin/services/${service.id}`} className="hover:underline">
-                {service.name}
+              <Link
+                to={`/admin/services/${service?.serviceId}`}
+                className="hover:underline"
+              >
+                {service?.serviceNickname ? service?.serviceNickname : "unset"}
               </Link>
             </TableCell>
-            <TableCell>{service.type}</TableCell>
+            <TableCell>{service?.relatedProduct?.serviceType}</TableCell>
             <TableCell>
               <div className="text-sm">
-                <div>{service.userEmail}</div>
+                <div>
+                  {service?.relatedUser?.email
+                    ? service?.relatedUser?.email
+                    : "not assigned"}
+                </div>
                 <div className="text-muted-foreground">{service.userId}</div>
               </div>
             </TableCell>
-            <TableCell>{service.expiryDate}</TableCell>
+            <TableCell>{getExpiryDate(service?.purchaseDate)}</TableCell>
             <TableCell>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm">
                   Edit
                 </Button>
-                <Button variant="outline" size="sm" className="text-destructive">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive"
+                  onClick={() => handleDeleteService(service?.serviceId)}
+                >
                   Delete
                 </Button>
               </div>
@@ -154,11 +231,16 @@ const AdminServices = () => {
   const renderCardView = (services: typeof mockServices) => (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {services.map((service) => (
-        <Card key={service.id} className="hover:shadow-lg transition-shadow">
+        <Card
+          key={service?.serviceId}
+          className="hover:shadow-lg transition-shadow"
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <Globe className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl font-bold">{service.ip}</CardTitle>
+              <CardTitle className="text-xl font-bold">
+                {service?.ipAddress}
+              </CardTitle>
             </div>
             <div className="flex items-center gap-2">
               {getStatusIcon(service.status)}
@@ -169,24 +251,43 @@ const AdminServices = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Server className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{service.name}</span>
+                <span className="font-medium">
+                  {service?.serviceNickname
+                    ? service?.serviceNickname
+                    : "unset"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{service.type}</span>
+                <span className="text-sm text-muted-foreground">
+                  {service?.relatedProduct?.serviceType}
+                </span>
               </div>
               <div className="text-sm">
-                <div>User: {service.userEmail}</div>
-                <div className="text-muted-foreground">ID: {service.userId}</div>
+                <div>
+                  User:{" "}
+                  {service?.relatedUser?.email
+                    ? service?.relatedUser?.email
+                    : "not assigned"}
+                </div>
+                <div className="text-muted-foreground">
+                  ID: {service.userId}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{service.expiryDate}</span>
+                <span className="text-sm">
+                  {getExpiryDate(service?.purchaseDate)}
+                </span>
               </div>
               <div className="flex gap-2 mt-4">
                 <Button variant="outline" size="sm" className="flex-1">
                   Edit
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1 text-destructive">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-destructive"
+                >
                   Delete
                 </Button>
               </div>
@@ -247,7 +348,9 @@ const AdminServices = () => {
           </div>
         </div>
 
-        {viewType === "list" ? renderListView(filteredServices) : renderCardView(filteredServices)}
+        {viewType === "list"
+          ? renderListView(filteredServices)
+          : renderCardView(filteredServices)}
       </div>
     </main>
   );
