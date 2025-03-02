@@ -7,22 +7,70 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import axios from "axios";
 import { Eye } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const users = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "User",
-    status: "Active",
-    lastLogin: "2024-03-10",
-  },
-  // Add more mock data as needed
-];
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+}
+
+export interface Profile {
+  name?: string;
+  avatarUrl?: string;
+}
+
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  whatsapp: string;
+  address: Address;
+  organizationName?: string;
+  gstNumber?: string;
+  role: 'user' | 'admin';
+  createdAt: Date;
+  balance: number;
+  profile?: Profile;
+  isActive: boolean;
+  isBanned: boolean;
+  revokedService: boolean;
+  lastLogin: Date;
+}
+
 
 const AdminUsers = () => {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get('/api/admin/all_users', {withCredentials: true});
+        setUsers(res.data);
+      } catch (error) {
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
+
+  const getDate = (date: Date) => {
+    const dateObj = new Date(date);
+  
+    return dateObj.toLocaleString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
   return (
     <main className="p-6 flex-1">
       <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-100/50">
@@ -44,22 +92,22 @@ const AdminUsers = () => {
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
+                <TableRow key={user._id}>
+                  <TableCell>{user.firstName} {user.lastName}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      user.status === 'Active' 
+                      user.isActive
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {user.status}
+                      {user.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </TableCell>
-                  <TableCell>{user.lastLogin}</TableCell>
+                  <TableCell>{getDate(user.lastLogin)}</TableCell>
                   <TableCell>
-                    <Link to={`/admin/users/${user.id}`}>
+                    <Link to={`/admin/users/${user._id}`}>
                       <Button variant="ghost" size="icon">
                         <Eye className="h-4 w-4" />
                       </Button>

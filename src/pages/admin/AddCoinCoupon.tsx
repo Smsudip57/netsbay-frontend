@@ -3,14 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import {toast} from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 
 const AddCoinCoupon = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [couponToken, setCouponToken] = useState("");
   const [amount, setAmount] = useState("");
   const [usageLimit, setUsageLimit] = useState("");
@@ -20,49 +20,22 @@ const AddCoinCoupon = () => {
     return regex.test(token);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateCouponToken(couponToken)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid coupon token",
-        description: "Token must start with a letter, contain only capital letters and numbers, and be at least 8 characters long.",
-      });
-      return;
+    try {
+      const Response = await axios.post("/api/admin/create_coupon", {
+        masterType: "coin",
+        coinAmmount: amount,
+        maxUses: usageLimit,
+        token: couponToken,
+      }, {withCredentials: true});
+      if(Response?.data) {
+        toast.success("Coupon created successfully");
+        navigate("/admin/coupons");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong!");
     }
-
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast({
-        variant: "destructive",
-        title: "Invalid amount",
-        description: "Please enter a valid positive number for the amount.",
-      });
-      return;
-    }
-
-    if (usageLimit && (isNaN(Number(usageLimit)) || Number(usageLimit) <= 0)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid usage limit",
-        description: "Usage limit must be a positive number.",
-      });
-      return;
-    }
-
-    // Handle form submission
-    console.log({
-      couponToken,
-      amount: Number(amount),
-      usageLimit: usageLimit ? Number(usageLimit) : "∞",
-    });
-
-    toast({
-      title: "Coin Coupon Created",
-      description: "The coin coupon has been successfully created.",
-    });
-
-    navigate("/admin/coupons");
   };
 
   return (

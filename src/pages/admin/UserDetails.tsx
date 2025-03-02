@@ -1,5 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Ban, Key, Plus, Minus, FileText, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  Key,
+  Plus,
+  Minus,
+  FileText,
+  ExternalLink,
+  CircleCheck,
+} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { act, useEffect, useState } from "react";
 import { ServiceListView } from "@/components/dashboard/service/ServiceListView";
 import { toast } from "sonner";
 import {
@@ -23,6 +32,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import axios from "axios";
+
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+}
+
+export interface Profile {
+  name?: string;
+  avatarUrl?: string;
+}
+
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  whatsapp: string;
+  address: Address;
+  organizationName?: string;
+  gstNumber?: string;
+  role: "user" | "admin";
+  createdAt: Date;
+  balance: number;
+  profile?: Profile;
+  isActive: boolean;
+  isBanned: boolean;
+  revokedService: boolean;
+  lastLogin: Date;
+}
 
 const UserDetails = () => {
   const { id } = useParams();
@@ -32,20 +75,7 @@ const UserDetails = () => {
   const [transactionId, setTransactionId] = useState("");
   const [gstType, setGstType] = useState("inclusive");
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Mock user data
-  const user = {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "User",
-    status: "Active",
-    lastLogin: "2024-03-10",
-    joinDate: "2024-01-01",
-    location: "New York, USA",
-    phone: "+1 234 567 890",
-    walletBalance: 500
-  };
+  const [user, setUser] = useState<User | null>(null);
 
   // Mock services data
   const services = [
@@ -60,8 +90,8 @@ const UserDetails = () => {
       specs: {
         cpu: "2 vCPU",
         ram: "2 GB",
-        storage: "20 GB"
-      }
+        storage: "20 GB",
+      },
     },
     // ... Add more mock services as needed
   ];
@@ -73,23 +103,113 @@ const UserDetails = () => {
       date: "2024-03-10",
       amount: 100,
       status: "Paid",
-      description: "Service Purchase"
+      description: "Service Purchase",
     },
     // ... Add more mock invoices
   ];
 
-  const handleUserAction = (action: 'ban' | 'revoke') => {
-    toast.success(`User ${action === 'ban' ? 'banned' : 'access revoked'} successfully`);
+  useEffect(() => {
+    const fetchUser = async () => {
+      console.log(id);
+      try {
+        const response = await axios.get(`/api/admin/targetuser`, {
+          params: { userId: id },
+          withCredentials: true,
+        });
+        console.log(response.data);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    fetchUser();
+  }, [id]);
+
+  const handleUserAction = async (action: "ban" | "revoke") => {
+    if (action === "ban") {
+      try {
+        const res = await axios.put(
+          `/api/admin/update_user`,
+          { userId: id, isBanned: !user?.isBanned },
+          { withCredentials: true }
+        );
+        if (res?.data) {
+          toast.success("User " + (user?.isBanned ? "unbanned" : "banned"));
+          setUser(res?.data?.user);
+        }
+      } catch (error) {
+        toast.error(`Failed to ${user?.isBanned ? "unban" : "ban"} user`);
+      }
+    } else if (action === "revoke") {
+      try {
+        const res = await axios.put(
+          `/api/admin/update_user`,
+          { userId: id, revokedService: !user?.revokedService },
+          { withCredentials: true }
+        );
+        if (res?.data) {
+          toast.success(
+            "Service " + (user?.revokedService ? "unrevoked" : "revoked")
+          );
+          setUser(res?.data?.user);
+        }
+      } catch (error) {
+        toast.error(
+          `Failed to ${user?.revokedService ? "unrevoke" : "revoke"} service`
+        );
+      }
+    }
   };
 
-  const handleNetcoinsAction = (action: 'add' | 'deduct') => {
+  const handleNetcoinsAction = async(action: "add" | "deduct") => {
     if (!netcoinsAmount || !reason) {
       toast.error("Please fill in all fields");
       return;
     }
-    toast.success(`${action === 'add' ? 'Added' : 'Deducted'} ${netcoinsAmount} NetCoins`);
-    setNetcoinsAmount("");
-    setReason("");
+    if (action === "add") {
+      try {
+        const res: any = await axios.put(
+          `/api/admin/update_user`,
+          {
+            userId: id,
+            balance: user?.balance + parseInt(netcoinsAmount),
+            reason,
+          },
+          { withCredentials: true }
+        );
+        if (res?.data) {
+          toast.success("Netcoins added successfully");
+          setUser(res?.data?.user);
+        }
+      } catch (error) {
+        toast.error("Failed to add netcoins");
+      } finally {
+        setNetcoinsAmount("");
+        setReason("");
+      }
+    } else if (action === "deduct") {
+      try {
+        const res: any = await axios.put(
+          `/api/admin/update_user`,
+          {
+            userId: id,
+            balance: user?.balance - parseInt(netcoinsAmount),
+            reason,
+          },
+          { withCredentials: true }
+        );
+        if (res?.data) {
+          toast.success("Netcoins deducted successfully");
+          setUser(res?.data?.user);
+        }
+      } catch (error) {
+        toast.error("Failed to deduct netcoins");
+      } finally {
+        setNetcoinsAmount("");
+        setReason("");
+      }
+    }
   };
 
   const handleGenerateInvoice = () => {
@@ -100,6 +220,16 @@ const UserDetails = () => {
     toast.success("Invoice generated successfully");
     setInvoiceAmount("");
     setTransactionId("");
+  };
+
+  const getDate = (date: Date) => {
+    const dateObj = new Date(date);
+
+    return dateObj.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   };
 
   return (
@@ -125,43 +255,56 @@ const UserDetails = () => {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Name</h3>
-                  <p className="mt-1">{user.name}</p>
+                  <p className="mt-1">
+                    {user?.firstName} {user?.lastName}
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                  <p className="mt-1">{user.email}</p>
+                  <p className="mt-1">{user?.email}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Role</h3>
-                  <p className="mt-1">{user.role}</p>
+                  <p className="mt-1">{user?.role}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    user.status === 'Active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {user.status}
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      user?.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {user?.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Join Date</h3>
-                  <p className="mt-1">{user.joinDate}</p>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Join Date
+                  </h3>
+                  <p className="mt-1">{getDate(user?.createdAt)}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Last Login</h3>
-                  <p className="mt-1">{user.lastLogin}</p>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Last Login
+                  </h3>
+                  <p className="mt-1">{getDate(user?.lastLogin)}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Location</h3>
-                  <p className="mt-1">{user.location}</p>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Location
+                  </h3>
+                  <p className="mt-1">
+                    {user?.address?.city}, {user?.address?.state},{" "}
+                    {user?.address?.country}
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Phone</h3>
-                  <p className="mt-1">{user.phone}</p>
+                  <p className="mt-1">{user?.whatsapp}</p>
                 </div>
               </div>
             </div>
@@ -174,13 +317,29 @@ const UserDetails = () => {
             <CardTitle>User Actions</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-4">
-            <Button variant="destructive" onClick={() => handleUserAction('ban')}>
-              <Ban className="h-4 w-4 mr-2" />
-              Ban User
+            <Button
+              variant={!user?.isBanned ? "destructive" : "default"}
+              className={`${!user?.isBanned ? "" : "text-white"}`}
+              onClick={() => handleUserAction("ban")}
+            >
+              {user?.isBanned ? (
+                <CircleCheck className="h-4 w-4 mr-2" />
+              ) : (
+                <Ban className="h-4 w-4 mr-2" />
+              )}
+              {user?.isBanned ? "Unban" : "Ban"} User
             </Button>
-            <Button variant="destructive" onClick={() => handleUserAction('revoke')}>
-              <Key className="h-4 w-4 mr-2" />
-              Revoke Service Access
+            <Button
+              variant={!user?.revokedService ? "destructive" : "default"}
+              className={`${!user?.revokedService ? "" : "text-white"}`}
+              onClick={() => handleUserAction("revoke")}
+            >
+              {user?.revokedService ? (
+                <CircleCheck className="h-4 w-4 mr-2" />
+              ) : (
+                <Key className="h-4 w-4 mr-2" />
+              )}
+              {user?.revokedService ? "Unrevoke" : "Revoke"} Service
             </Button>
           </CardContent>
         </Card>
@@ -193,11 +352,11 @@ const UserDetails = () => {
           <CardContent>
             <div className="mb-4">
               <p className="text-sm text-gray-500">Current Balance</p>
-              <p className="text-2xl font-bold">{user.walletBalance} NC</p>
+              <p className="text-2xl font-bold">{user?.balance} NC</p>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="amount">Amount (NC)</Label>
                   <Input
                     id="amount"
@@ -206,7 +365,7 @@ const UserDetails = () => {
                     type="number"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="reason">Reason</Label>
                   <Input
                     id="reason"
@@ -216,11 +375,18 @@ const UserDetails = () => {
                 </div>
               </div>
               <div className="flex gap-4">
-                <Button onClick={() => handleNetcoinsAction('add')} className="flex-1">
+                <Button
+                  onClick={() => handleNetcoinsAction("add")}
+                  className="flex-1"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add NetCoins
                 </Button>
-                <Button onClick={() => handleNetcoinsAction('deduct')} variant="destructive" className="flex-1">
+                <Button
+                  onClick={() => handleNetcoinsAction("deduct")}
+                  variant="destructive"
+                  className="flex-1"
+                >
                   <Minus className="h-4 w-4 mr-2" />
                   Deduct NetCoins
                 </Button>
@@ -281,25 +447,24 @@ const UserDetails = () => {
             <CardTitle>User Services</CardTitle>
           </CardHeader>
           <CardContent>
-            <ServiceListView services={services} />
+            <ServiceListView services={[]} />
             <div className="mt-4 flex justify-center">
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
                 >
                   Previous
                 </Button>
-                <Button
-                  variant="outline"
-                  disabled
-                >
+                <Button variant="outline" disabled>
                   Page {currentPage}
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
                   disabled={services.length < 10}
                 >
                   Next
@@ -338,11 +503,13 @@ const UserDetails = () => {
                     <TableCell>{invoice.date}</TableCell>
                     <TableCell>{invoice.amount} NC</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        invoice.status === 'Paid' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          invoice.status === "Paid"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
                         {invoice.status}
                       </span>
                     </TableCell>

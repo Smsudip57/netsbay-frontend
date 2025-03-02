@@ -17,103 +17,104 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const Coupons = () => {
-  const { toast } = useToast();
+  const [productCoupons, setProductCoupons] = useState([]);
+  const [coinCoupons, setCoinCoupons] = useState([]);
 
-  const productCoupons = [
-    {
-      id: 1,
-      token: "SUMMER2024",
-      label: "Festive",
-      type: "percentage",
-      discount: "20%",
-      usageCount: "45/100",
-      expiryDate: "2024-08-31",
-      status: "active",
-    },
-    {
-      id: 2,
-      token: "WELCOME50",
-      label: "Affiliate",
-      type: "amount",
-      discount: "50 NC",
-      usageCount: "∞",
-      expiryDate: "2024-12-31",
-      status: "active",
-    },
-    {
-      id: 3,
-      token: "SPECIAL25",
-      label: "Festive",
-      type: "percentage",
-      discount: "25%",
-      usageCount: "98/100",
-      expiryDate: "2024-06-30",
-      status: "active",
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/api/admin/all_coupons", {
+          withCredentials: true,
+        });
+        const productCoupons = res.data.filter(
+          (coupon: any) => coupon.masterType === "product"
+        );
+        const coinCoupons = res.data.filter(
+          (coupon: any) => coupon.masterType === "coin"
+        );
+
+        setProductCoupons(productCoupons);
+        setCoinCoupons(coinCoupons);
+      } catch (error) {}
+    };
+
+    fetchData();
+  }, []);
+
+  const getStatusColor = (data: any, val:boolean) => {
+    let status = "expired";
+    const date = new Date(data?.endDate);
+
+    if (date > new Date() && (data?.maxUses ? data?.used < data.maxUses: true)) {
+      status = "active";
     }
-  ];
-
-  const coinCoupons = [
-    {
-      id: 1,
-      token: "FREECOINS100",
-      amount: "100 NC",
-      usageCount: "50/100",
-      prohibitedUsers: ["user123", "user456"],
-      status: "active",
-    },
-    {
-      id: 2,
-      token: "BONUS500",
-      amount: "500 NC",
-      usageCount: "10/50",
-      prohibitedUsers: ["user789"],
-      status: "active",
+    if (!data?.isActive) {
+      status = data.isActive ? "active" : "inactive";
     }
-  ];
+    if(data?.masterType === "coin") {
+      status = data.isActive ? "active" : "inactive";
+    }
+    if (val) {
+      return status
+    }
 
-  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'expired':
-        return 'bg-red-100 text-red-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "expired":
+        return "bg-red-100 text-red-800";
+      case "inactive":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-blue-100 text-blue-800';
+        return "bg-blue-100 text-blue-800";
     }
   };
 
-  const handleDelete = (id: number, type: 'product' | 'coin') => {
-    toast({
-      title: `${type === 'product' ? 'Product' : 'Coin'} Coupon Deleted`,
-      description: "The coupon has been successfully deleted.",
+  const getDate = (date: Date) => {
+    const dateObj = new Date(date);
+
+    return dateObj.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
-  const handleToggleStatus = (id: number, currentStatus: string, type: 'product' | 'coin') => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    toast({
-      title: `${type === 'product' ? 'Product' : 'Coin'} Coupon ${newStatus === 'active' ? 'Activated' : 'Deactivated'}`,
-      description: `The coupon has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
-    });
+  const handleDelete = async(_id: String, type: "product" | "coin") => {
+    try {
+      const res:any =  await axios.delete(`/api/admin/delete_coupon`, {
+        params: {
+          couponId: _id,
+        },
+        withCredentials: true
+      })
+      if(res?.data) {
+        setProductCoupons((prev: any) => prev.filter((coupon: any) => coupon._id !== _id));
+        toast.success(res?.data?.message);
+      }
+    } catch (error) {
+      toast.error("Failed to delete coupon.");
+    }
+  };
+
+  const handleToggleStatus = (
+    id: number,
+    currentStatus: string,
+    type: "product" | "coin"
+  ) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+    
   };
 
   const handleCopyToken = (token: string) => {
     navigator.clipboard.writeText(token);
-    toast({
-      title: "Copied to Clipboard",
-      description: `Coupon code "${token}" has been copied to clipboard.`,
-    });
+    toast.success("Token copied to clipboard");
   };
 
   return (
@@ -136,7 +137,7 @@ const Coupons = () => {
             </Button>
           </div>
         </div>
-        
+
         <Tabs defaultValue="product" className="space-y-4">
           <TabsList>
             <TabsTrigger value="product">Product Coupons</TabsTrigger>
@@ -151,41 +152,77 @@ const Coupons = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="whitespace-nowrap">Token</TableHead>
-                          <TableHead className="whitespace-nowrap">Label</TableHead>
-                          <TableHead className="whitespace-nowrap">Type</TableHead>
-                          <TableHead className="whitespace-nowrap">Discount</TableHead>
-                          <TableHead className="whitespace-nowrap">Usage Count</TableHead>
-                          <TableHead className="whitespace-nowrap">Expiry Date</TableHead>
-                          <TableHead className="whitespace-nowrap">Status</TableHead>
-                          <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Token
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Label
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Type
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Discount
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Usage Count
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Expiry Date
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Status
+                          </TableHead>
+                          <TableHead className="text-right whitespace-nowrap">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {productCoupons.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={8} className="text-center py-4">
-                              No product coupons found. Create your first coupon!
+                              No product coupons found. Create your first
+                              coupon!
                             </TableCell>
                           </TableRow>
                         ) : (
                           productCoupons.map((coupon) => (
                             <TableRow key={coupon.id}>
-                              <TableCell 
+                              <TableCell
                                 className="font-medium whitespace-nowrap cursor-pointer hover:text-primary flex items-center gap-2"
                                 onClick={() => handleCopyToken(coupon.token)}
                               >
                                 {coupon.token}
                                 <Copy className="h-3 w-3" />
                               </TableCell>
-                              <TableCell className="whitespace-nowrap">{coupon.label}</TableCell>
-                              <TableCell className="capitalize whitespace-nowrap">{coupon.type}</TableCell>
-                              <TableCell className="whitespace-nowrap">{coupon.discount}</TableCell>
-                              <TableCell className="whitespace-nowrap">{coupon.usageCount}</TableCell>
-                              <TableCell className="whitespace-nowrap">{coupon.expiryDate}</TableCell>
                               <TableCell className="whitespace-nowrap">
-                                <Badge className={getStatusColor(coupon.status)}>
-                                  {coupon.status}
+                                {coupon?.label
+                                  ? coupon.label.charAt(0).toUpperCase() +
+                                    coupon.label.slice(1).toLowerCase()
+                                  : ""}
+                              </TableCell>
+                              <TableCell className="capitalize whitespace-nowrap">
+                                {coupon.discountAmmount
+                                  ? "Amount"
+                                  : "Percentage"}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {coupon?.discountAmmount ||
+                                  coupon?.discountParcent}{" "}
+                                {coupon.discountAmmount ? "NC" : "%"}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {coupon?.maxUses
+                                  ? `${coupon?.used || 0}/${coupon.maxUses}`
+                                  : "Unlimited"}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {getDate(coupon?.endDate)}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                <Badge className={getStatusColor(coupon, false)}>
+                                  {getStatusColor(coupon, true)}
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right whitespace-nowrap">
@@ -197,13 +234,23 @@ const Coupons = () => {
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
-                                      onClick={() => handleToggleStatus(coupon.id, coupon.status, 'product')}
+                                      onClick={() =>
+                                        handleToggleStatus(
+                                          coupon.id,
+                                          coupon.status,
+                                          "product"
+                                        )
+                                      }
                                     >
-                                      {coupon.status === 'active' ? 'Deactivate' : 'Activate'}
+                                      {coupon.status === "active"
+                                        ? "Deactivate"
+                                        : "Activate"}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       className="text-red-600"
-                                      onClick={() => handleDelete(coupon.id, 'product')}
+                                      onClick={() =>
+                                        handleDelete(coupon._id, "product")
+                                      }
                                     >
                                       Delete
                                     </DropdownMenuItem>
@@ -229,11 +276,21 @@ const Coupons = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="whitespace-nowrap">Token</TableHead>
-                          <TableHead className="whitespace-nowrap">Amount</TableHead>
-                          <TableHead className="whitespace-nowrap">Usage Count</TableHead>
-                          <TableHead className="whitespace-nowrap">Status</TableHead>
-                          <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Token
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Amount
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Usage Count
+                          </TableHead>
+                          <TableHead className="whitespace-nowrap">
+                            Status
+                          </TableHead>
+                          <TableHead className="text-right whitespace-nowrap">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -246,18 +303,26 @@ const Coupons = () => {
                         ) : (
                           coinCoupons.map((coupon) => (
                             <TableRow key={coupon.id}>
-                              <TableCell 
+                              <TableCell
                                 className="font-medium whitespace-nowrap cursor-pointer hover:text-primary flex items-center gap-2"
                                 onClick={() => handleCopyToken(coupon.token)}
                               >
                                 {coupon.token}
                                 <Copy className="h-3 w-3" />
                               </TableCell>
-                              <TableCell className="whitespace-nowrap">{coupon.amount}</TableCell>
-                              <TableCell className="whitespace-nowrap">{coupon.usageCount}</TableCell>
                               <TableCell className="whitespace-nowrap">
-                                <Badge className={getStatusColor(coupon.status)}>
-                                  {coupon.status}
+                                {coupon?.coinAmmount} NC
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                              {coupon?.maxUses
+                                  ? `${coupon?.used || 0}/${coupon.maxUses}`
+                                  : "Unlimited"}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                <Badge
+                                  className={getStatusColor(coupon, false)}
+                                >
+                                  {coupon.isActive ? "Active" : "Inactive"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right whitespace-nowrap">
@@ -269,13 +334,23 @@ const Coupons = () => {
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
-                                      onClick={() => handleToggleStatus(coupon.id, coupon.status, 'coin')}
+                                      onClick={() =>
+                                        handleToggleStatus(
+                                          coupon.id,
+                                          coupon.status,
+                                          "coin"
+                                        )
+                                      }
                                     >
-                                      {coupon.status === 'active' ? 'Deactivate' : 'Activate'}
+                                      {coupon.status === "active"
+                                        ? "Deactivate"
+                                        : "Activate"}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       className="text-red-600"
-                                      onClick={() => handleDelete(coupon.id, 'coin')}
+                                      onClick={() =>
+                                        handleDelete(coupon.id, "coin")
+                                      }
                                     >
                                       Delete
                                     </DropdownMenuItem>

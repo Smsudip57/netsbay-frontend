@@ -15,11 +15,11 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { X, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import axios from "axios";
+import { toast } from "sonner";
 
 const AddCoupon = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [addToProhibition, setAddToProhibition] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
@@ -28,6 +28,11 @@ const AddCoupon = () => {
   const [productInput, setProductInput] = useState("");
   const [prohibitedUserInput, setProhibitedUserInput] = useState("");
   const [couponToken, setCouponToken] = useState("");
+  const [label, setLabel] = useState("");
+  const [discountAmmount, setDiscountAmmount] = useState<number>(0);
+  const [discountParcent, setDiscountParcent] = useState<number>(0);
+  const [useCount, setUseCount] = useState<number>(0);
+  const [expiryDate, setExpiryDate] = useState("");
 
   const validateCouponToken = (token: string) => {
     const regex = /^[A-Z][A-Z0-9]{7,}$/;
@@ -67,26 +72,29 @@ const AddCoupon = () => {
     setProhibitedUsers(prohibitedUsers.filter(u => u !== user));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateCouponToken(couponToken)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid coupon token",
-        description: "Token must start with a letter, contain only capital letters and numbers, and be at least 8 characters long.",
-      });
-      return;
+    try {
+      const response = await axios.post("/api/admin/create_coupon", {
+        masterType : "product",
+        label : label,
+        user: selectedUsers,
+        userProhibited: prohibitedUsers,
+        addUsersToProhibited: addToProhibition,
+        productId: selectedProducts,
+        discountAmmount: discountAmmount,
+        discountParcent : discountParcent,
+        maxUses: useCount,
+        endDate: expiryDate,
+        token: couponToken,
+      }, {withCredentials: true});
+      if(response?.data) {
+        toast.success("Coupon created successfully");
+        navigate("/admin/coupons");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong!");
     }
-    
-    // Handle form submission
-    console.log({
-      couponToken,
-      selectedUsers: selectedUsers.length === 0 ? "all" : selectedUsers,
-      selectedProducts: selectedProducts.length === 0 ? "all" : selectedProducts,
-      prohibitedUsers,
-      addUserToProhibitionAfterUse: addToProhibition
-    });
   };
 
   return (
@@ -122,7 +130,7 @@ const AddCoupon = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="label">Label</Label>
-                <Select>
+                <Select value={label} onValueChange={setLabel}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
@@ -134,12 +142,12 @@ const AddCoupon = () => {
               </div>
 
               <div className="space-y-2 col-span-2">
-                <Label>User IDs (Empty for all users)</Label>
+                <Label>User Emails (Empty for all users)</Label>
                 <div className="flex gap-2 mb-2">
                   <Input
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Enter user ID"
+                    placeholder="Enter user Email"
                   />
                   <Button type="button" onClick={handleAddUser}>
                     Add
@@ -159,7 +167,7 @@ const AddCoupon = () => {
               </div>
 
               <div className="space-y-2 col-span-2">
-                <Label>Product IDs (Empty for all products)</Label>
+                <Label>Product Emails (Empty for all products)</Label>
                 <div className="flex gap-2 mb-2">
                   <Input
                     value={productInput}
@@ -187,6 +195,8 @@ const AddCoupon = () => {
                 <Label htmlFor="amountDeduct">Amount to Deduct (NC)</Label>
                 <Input 
                   type="number" 
+                  value={discountAmmount}
+                  onChange={(e) => setDiscountAmmount(parseInt(e.target.value))}
                   id="amountDeduct" 
                   placeholder="0"
                   min="0"
@@ -198,6 +208,8 @@ const AddCoupon = () => {
                 <Input 
                   type="number" 
                   id="percentageDeduct" 
+                  value={discountParcent}
+                  onChange={(e) => setDiscountParcent(parseInt(e.target.value))}
                   placeholder="0"
                   min="0"
                   max="100"
@@ -209,6 +221,8 @@ const AddCoupon = () => {
                 <Input 
                   type="number" 
                   id="useCount" 
+                  value={useCount}
+                  onChange={(e) => setUseCount(parseInt(e.target.value))}
                   placeholder="Leave empty for unlimited"
                   min="0"
                 />
@@ -218,6 +232,8 @@ const AddCoupon = () => {
                 <Label htmlFor="expiryDate">Expiry Date</Label>
                 <Input 
                   type="date" 
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
                   id="expiryDate"
                 />
               </div>
@@ -243,7 +259,7 @@ const AddCoupon = () => {
                 <Input
                   value={prohibitedUserInput}
                   onChange={(e) => setProhibitedUserInput(e.target.value)}
-                  placeholder="Enter user ID to prohibit"
+                  placeholder="Enter user Email to prohibit"
                 />
                 <Button type="button" onClick={handleAddProhibitedUser}>
                   Add
