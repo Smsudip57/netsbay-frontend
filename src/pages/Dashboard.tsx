@@ -17,6 +17,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAppContext } from "@/context/context";
 import { 
   Cpu, 
   HardDrive, 
@@ -30,6 +31,8 @@ import {
   ShieldCheck 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const mockServices = [
   { id: 1, name: "Ubuntu Server", status: "online", type: "Linux" },
@@ -44,6 +47,23 @@ const mockTransactions = [
 ];
 
 const DashboardHome = () => {
+  const [services,setServices] = useState<any>();
+  const { user } = useAppContext();
+  
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await axios.get("/api/user/services", { withCredentials: true });
+        if(res?.data) {
+          setServices(res?.data);
+        }
+      } catch (error) {
+        
+      }
+    }
+    fetchServices();
+  }, []);
+
   return (
     <main className="p-6 flex-1">
       <div className="max-w-[1400px] mx-auto space-y-6">
@@ -64,14 +84,14 @@ const DashboardHome = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StatsCard
               title="Active Services"
-              value="5"
+              value={services?.length}
               icon={<Server className="h-4 w-4" />}
-              description="2 services running"
+              description={`${services?.filter((service: any) => service?.status === 'active')?.length} services running`}
               variant="default"
             />
             <StatsCard
               title="Available Balance"
-              value="250 NC"
+              value={`${user?.balance.toFixed(2)} NC`}
               icon={<WalletIcon className="h-4 w-4" />}
               description="Last topped up 2 days ago"
               variant="default"
@@ -85,7 +105,7 @@ const DashboardHome = () => {
             />
             <StatsCard
               title="Total Storage"
-              value="500 GB"
+              value={`${services?.filter((service: any) => service?.status === 'active')?.reduce((acc: number, service: any) => acc + service?.relatedProduct?.storage, 0)} GB`}
               icon={<HardDrive className="h-4 w-4" />}
               description="250 GB available"
               variant="default"
