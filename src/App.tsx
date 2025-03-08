@@ -19,7 +19,6 @@ import Refund from "./pages/Refund";
 import axios from "axios";
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
-
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <AppProvider>
