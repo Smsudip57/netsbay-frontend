@@ -30,7 +30,18 @@ jobs:
             npm install
 
             # Run build
-            npm run build
+            npm cache clean --force
+            rm -rf node_modules package-lock.json
+
+            # Install dependencies
+            npm install --verbose 2>&1 | tee npm-install.log
+
+            # Run build and log output
+            npm run build 2>&1 | tee npm-build.log
+
+            # Check logs after failure
+            cat npm-install.log
+            cat npm-build.log
 
           EOF
 
