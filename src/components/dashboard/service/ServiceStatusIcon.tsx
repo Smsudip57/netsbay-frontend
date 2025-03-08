@@ -7,7 +7,7 @@ interface ServiceStatusIconProps {
 
 export const ServiceStatusIcon = ({ status }: ServiceStatusIconProps) => {
   switch (status) {
-    case "online":
+    case "active":
       return <CheckCircle className="h-4 w-4 text-green-500" />;
     case "stopped":
       return <CircleSlash className="h-4 w-4 text-yellow-500" />;

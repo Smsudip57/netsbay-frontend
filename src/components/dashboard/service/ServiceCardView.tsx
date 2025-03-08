@@ -3,18 +3,57 @@ import { Link } from "react-router-dom";
 import { CheckCircle, XCircle, Server, Calendar, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface Service {
-  id: number;
-  name: string;
-  type: string;
-  status: string;
-  ip: string;
-  expiryDate: string;
-  specs: {
-    cpu: string;
-    ram: string;
-    storage: string;
-  };
+
+type ServiceType =
+  | "Internal RDP"
+  | "External RDP"
+  | "Internal Linux"
+  | "External Linux";
+
+interface ServiceVM {
+  productId: string;
+  productName?: string;
+  Os: string;
+  serviceType: ServiceType;
+  cpu: number;
+  ram: number;
+  storage: number;
+  ipSet: string;
+  price: number;
+  Stock?: boolean;
+  createdAt?: Date;
+}
+
+ type ServiceStatus = 'unsold' | 'pending' | 'active' | 'expired' | 'terminated';
+ type TerminationReason = 'expired' | 'unpaid' | 'banned' | null;
+
+ interface Service {
+  _id?: string;
+  relatedUser: string ;
+  relatedProduct: ServiceVM;
+  
+  // Service details
+  serviceId: string;
+  serviceNickname?: string;
+  
+  // Service type
+  vmID?: number;
+  purchaseDate?: Date;
+  purchedFrom?: string;
+  EXTRLhash?: string;
+  
+  // Credentials
+  username?: string;
+  password?: string;
+  ipAddress?: string;
+  
+  // Status
+  status: ServiceStatus;
+  terminationDate: Date | null;
+  terminationReason: TerminationReason;
+  
+  createdAt: Date;
+  expiryDate?: Date;
 }
 
 interface ServiceCardViewProps {
@@ -23,20 +62,25 @@ interface ServiceCardViewProps {
 
 export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "online":
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
-      case "stopped":
-        return <XCircle className="h-5 w-5 text-amber-500" />;
-      default:
-        return <XCircle className="h-5 w-5 text-red-500" />;
+    if (status === "active") {
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    } else {
+      return <XCircle className="h-5 w-5 text-red-500" />;
     }
   };
 
+  const getDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    services.length > 0 ? (<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {services.map((service) => (
-        <Link key={service.id} to={`/dashboard/services/${service.id}`}>
+        <Link key={service._id} to={`/dashboard/services/${service?.serviceId}`}>
           <Card className="h-full hover:shadow-lg transition-all duration-300 border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between space-y-0">
@@ -46,10 +90,10 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
                   </div>
                   <div>
                     <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                      {service.name}
+                      {service?.serviceNickname}
                     </CardTitle>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {service.type}
+                      {service.relatedProduct.Os}
                     </p>
                   </div>
                 </div>
@@ -67,13 +111,13 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
                     </p>
                     <div className="space-y-1">
                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                        {service.specs.cpu}
+                         {service.relatedProduct.cpu} CPU
                       </p>
                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                        {service.specs.ram}
+                        {service.relatedProduct.ram} GB RAM
                       </p>
                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                        {service.specs.storage}
+                        {service.relatedProduct.storage} GB Storage
                       </p>
                     </div>
                   </div>
@@ -82,7 +126,7 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
                       Network
                     </p>
                     <p className="text-sm text-slate-700 dark:text-slate-300 font-mono">
-                      {service.ip}
+                      {service.ipAddress}
                     </p>
                   </div>
                 </div>
@@ -93,7 +137,7 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
                       <span className="text-sm">Expires</span>
                     </div>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {service.expiryDate}
+                      {getDate(service.expiryDate)}
                     </p>
                   </div>
                 </div>
@@ -102,6 +146,12 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
           </Card>
         </Link>
       ))}
-    </div>
+    </div>): (
+      <div className="flex items-center justify-center h-96">
+        <p className="text-lg font-semibold text-slate-500 dark:text-slate-400">
+          No services found
+        </p>
+      </div>
+    )
   );
 };

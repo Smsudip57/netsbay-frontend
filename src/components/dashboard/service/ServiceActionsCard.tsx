@@ -13,6 +13,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+type serviceType = 'Internal Linux' | 'External Linux' | 'Internal RDP' | 'External RDP';
+
 interface ServiceActionsCardProps {
   serviceType: string;
   vmId?: string;
@@ -45,9 +47,8 @@ export const ServiceActionsCard = ({ serviceType, vmId, status }: ServiceActions
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [showRebuildDialog, setShowRebuildDialog] = useState(false);
-  const isType4 = serviceType === 'type4';
   const hasVmId = !!vmId;
-  const isRunning = status === 'running';
+  const isRunning = status === 'active';
 
   const handlePasswordChange = () => {
     // Here you would make an API call to change the password
@@ -62,50 +63,100 @@ export const ServiceActionsCard = ({ serviceType, vmId, status }: ServiceActions
     setShowRebuildDialog(false);
   };
 
-  const actions = isType4 ? [
-    { 
-      icon: Play, 
-      label: "Start Request",
-      onClick: () => console.log("Start clicked"),
-      disabled: isRunning,
-      variant: "outline" as const
-    },
-  ] : [
-    { 
-      icon: Play, 
-      label: "Start", 
-      onClick: () => console.log("Start clicked"),
-      disabled: isRunning,
-      variant: "outline" as const
-    },
-    { 
-      icon: StopCircle, 
-      label: "Stop", 
-      onClick: () => console.log("Stop clicked"),
-      disabled: !isRunning,
-      variant: "outline" as const
-    },
-    { 
-      icon: RefreshCw, 
-      label: "Reboot", 
-      onClick: () => console.log("Reboot clicked"),
-      disabled: !isRunning,
-      variant: "outline" as const
-    },
-    { 
-      icon: Key, 
-      label: "Change Password", 
-      onClick: () => setShowPasswordChange(!showPasswordChange),
-      variant: "outline" as const
-    },
-    ...(hasVmId ? [{
-      icon: DatabaseZap,
-      label: "REBUILD Request",
-      onClick: () => setShowRebuildDialog(true),
-      variant: "outline" as const
-    }] : []),
-  ];
+  // Then replace your actions logic with this:
+const getServiceActions = () => {
+  const isInternal = serviceType.includes('Internal');
+  const isWindows = serviceType.includes('RDP');
+  
+  // Internal services (both Linux and Windows)
+  if (isInternal) {
+    return [
+      { 
+        icon: Play, 
+        label: "Start", 
+        onClick: () => console.log("Start clicked"),
+        disabled: isRunning,
+        variant: "outline" as const
+      },
+      { 
+        icon: StopCircle, 
+        label: "Stop", 
+        onClick: () => console.log("Stop clicked"),
+        disabled: !isRunning,
+        variant: "outline" as const
+      },
+      { 
+        icon: RefreshCw, 
+        label: "Reboot", 
+        onClick: () => console.log("Reboot clicked"),
+        disabled: !isRunning,
+        variant: "outline" as const
+      },
+      { 
+        icon: Key, 
+        label: "Change Password", 
+        onClick: () => setShowPasswordChange(!showPasswordChange),
+        variant: "outline" as const
+      },
+      ...(hasVmId ? [{
+        icon: DatabaseZap,
+        label: "REBUILD Request",
+        onClick: () => setShowRebuildDialog(true),
+        variant: "outline" as const
+      }] : []),
+    ];
+  }
+  // External Linux
+  else if (!isInternal && !isWindows) {
+    return [
+      { 
+        icon: RefreshCw, 
+        label: "Reboot", 
+        onClick: () => console.log("Reboot clicked"),
+        disabled: !isRunning,
+        variant: "outline" as const
+      },
+      { 
+        icon: Key, 
+        label: "Change Password", 
+        onClick: () => setShowPasswordChange(!showPasswordChange),
+        variant: "outline" as const
+      },
+      ...(hasVmId ? [{
+        icon: DatabaseZap,
+        label: "REBUILD Request",
+        onClick: () => setShowRebuildDialog(true),
+        variant: "outline" as const
+      }] : []),
+    ];
+  }
+  // External Windows (RDP)
+  else {
+    return [
+      { 
+        icon: RefreshCw, 
+        label: "Request Reboot", 
+        onClick: () => console.log("Request Reboot clicked"),
+        variant: "outline" as const
+      },
+      { 
+        icon: Key, 
+        label: "Request Password Change", 
+        onClick: () => console.log("Request password change"),
+        variant: "outline" as const
+      },
+      ...(hasVmId ? [{
+        icon: DatabaseZap,
+        label: "Request Rebuild",
+        onClick: () => setShowRebuildDialog(true),
+        variant: "outline" as const
+      }] : []),
+    ];
+  }
+};
 
+// Replace your actions constant with:
+const actions = getServiceActions();
   return (
     <Card className="mb-4">
       <CardHeader className="pb-2">

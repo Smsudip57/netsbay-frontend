@@ -8,155 +8,97 @@ import { ServiceCredentials } from "@/components/dashboard/service/ServiceCreden
 import { ServiceStatusCard } from "@/components/dashboard/service/ServiceStatusCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { date } from "zod";
 
 // Mock data for resource utilization
-const mockUtilization = {
-  cpu: 45,
-  ram: 60,
-  disk: 30,
-  network: 25,
-};
 
-// Find service by ID from mock data
-const findServiceById = (id: string) => {
-  const mockServices = [
-    {
-      id: "vm-001",
-      nickname: "Ubuntu Basic Server",
-      name: "Ubuntu Basic Server",
-      type: "Linux-Ubuntu",
-      status: "expired",
-      ip: "103.211.12.101",
-      expiryDate: "2024-03-31",
-      specs: {
-        cpu: "2 vCPU",
-        ram: "2 GB",
-        storage: "10 GB",
-      },
-      productName: "Ubuntu Basic",
-      username: "admin",
-      password: "********",
-      vmId: "VM001",
-      serviceType: "type1",
-      ipSet: "103.211.12.101/24",
-    },
-    {
-      id: "vm-002",
-      nickname: "Ubuntu Pro Server",
-      name: "Ubuntu Pro Server",
-      type: "Linux-Ubuntu",
-      status: "online",
-      ip: "103.211.12.102",
-      expiryDate: "2024-12-31",
-      specs: {
-        cpu: "4 vCPU",
-        ram: "8 GB",
-        storage: "20 GB",
-      },
-      productName: "Ubuntu Pro",
-      username: "admin",
-      password: "********",
-      vmId: "VM002",
-      serviceType: "type1",
-    },
-    {
-      id: "vm-003",
-      nickname: "CentOS Basic Server",
-      name: "CentOS Basic Server",
-      type: "Linux-CentOS",
-      status: "stopped",
-      ip: "103.157.13.101",
-      expiryDate: "2024-12-31",
-      specs: {
-        cpu: "2 vCPU",
-        ram: "4 GB",
-        storage: "10 GB",
-      },
-      productName: "CentOS Basic",
-      username: "admin",
-      password: "********",
-      vmId: "VM003",
-      serviceType: "type1",
-    },
-    {
-      id: "vm-004",
-      nickname: "CentOS Pro Server",
-      name: "CentOS Pro Server",
-      type: "Linux-CentOS",
-      status: "online",
-      ip: "103.157.13.102",
-      expiryDate: "2024-12-31",
-      specs: {
-        cpu: "6 vCPU",
-        ram: "16 GB",
-        storage: "20 GB",
-      },
-      productName: "CentOS Pro",
-      username: "admin",
-      password: "********",
-      vmId: "VM004",
-      serviceType: "type1",
-    },
-    {
-      id: "vm-005",
-      nickname: "Windows Basic Server",
-      name: "Windows Basic Server",
-      type: "Windows",
-      status: "expired",
-      ip: "157.15.14.101",
-      expiryDate: "2024-06-30",
-      specs: {
-        cpu: "4 vCPU",
-        ram: "8 GB",
-        storage: "30 GB",
-      },
-      productName: "Windows Server Basic",
-      username: "administrator",
-      password: "********",
-      vmId: "VM005",
-      serviceType: "type2",
-    },
-    {
-      id: "vm-006",
-      nickname: "Windows Pro Server",
-      name: "Windows Pro Server",
-      type: "Windows",
-      status: "online",
-      ip: "157.15.14.102",
-      expiryDate: "2024-12-31",
-      specs: {
-        cpu: "8 vCPU",
-        ram: "32 GB",
-        storage: "45 GB",
-      },
-      productName: "Windows Server Pro",
-      username: "administrator",
-      password: "********",
-      vmId: "VM006",
-      serviceType: "type1",
-    },
-  ];
+type ServiceType =
+  | "Internal RDP"
+  | "External RDP"
+  | "Internal Linux"
+  | "External Linux";
 
-  return mockServices.find(service => service.id === id);
-};
+interface ServiceVM {
+  productId: string;
+  productName?: string;
+  Os: string;
+  serviceType: ServiceType;
+  cpu: number;
+  ram: number;
+  storage: number;
+  ipSet: string;
+  price: number;
+  Stock?: boolean;
+  createdAt?: Date;
+}
+
+ type ServiceStatus = 'unsold' | 'pending' | 'active' | 'expired' | 'terminated';
+ type TerminationReason = 'expired' | 'unpaid' | 'banned' | null;
+
+ interface IService {
+  _id?: string;
+  relatedUser: string ;
+  relatedProduct: ServiceVM;
+  
+  // Service details
+  serviceId: string;
+  serviceNickname?: string;
+  
+  // Service type
+  vmID?: number;
+  purchaseDate?: Date;
+  purchedFrom?: string;
+  EXTRLhash?: string;
+  
+  // Credentials
+  username?: string;
+  password?: string;
+  ipAddress?: string;
+  
+  // Status
+  status: ServiceStatus;
+  terminationDate: Date | null;
+  terminationReason: TerminationReason;
+  
+  createdAt: Date;
+  expiryDate?: Date;
+}
 
 const ServiceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const serviceDetails = id ? findServiceById(id) : null;
+  const [serviceDetails, setServiceDetails] = useState<IService>();
 
   useEffect(() => {
-    if (!serviceDetails) {
-      navigate("/dashboard/services");
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`/api/user/service`,{
+          params: { serviceId: id },
+          withCredentials: true,
+        });
+        if(res?.data){
+          setServiceDetails(res?.data);
+        }
+      } catch (error) {
+        navigate("/dashboard/services");
+      }
     }
-  }, [serviceDetails, navigate]);
+    fetchData();
+    if (!serviceDetails) {
+    }
+  }, []);
+
+
 
   if (!serviceDetails) {
     return null;
   }
 
-  const isExpired = serviceDetails.status === 'expired';
+  const isExpired = (date: Date) => {
+    return new Date(date) < new Date();
+  };
 
   return (
     <main className="p-8 flex-1 bg-background/50 min-h-screen">
@@ -173,21 +115,22 @@ const ServiceDetails = () => {
 
         <div className="space-y-8">
           <ServiceHeader 
-            nickname={serviceDetails.nickname}
-            id={serviceDetails.id}
-            type={serviceDetails.type}
+            nickname={serviceDetails?.serviceNickname}
+            id={serviceDetails?.serviceId}
+            type={serviceDetails?.relatedProduct?.Os}
             status={serviceDetails.status}
+            date={serviceDetails.expiryDate}
           />
 
           <SystemDetailsGrid details={{
-            type: serviceDetails.type,
-            ipSet: serviceDetails.ipSet || '',
-            cpu: serviceDetails.specs.cpu,
-            ram: serviceDetails.specs.ram,
-            storage: serviceDetails.specs.storage,
+            type: serviceDetails?.relatedProduct?.Os,
+            ipSet: serviceDetails?.relatedProduct?.ipSet || '',
+            cpu: serviceDetails?.relatedProduct?.cpu,
+            ram: serviceDetails?.relatedProduct?.ram,
+            storage: serviceDetails?.relatedProduct?.storage,
           }} />
 
-          {isExpired && (
+          {isExpired(serviceDetails?.expiryDate) && (
             <div className="flex items-center justify-between p-6 bg-amber-500/10 border border-amber-500/20 rounded-lg shadow-sm">
               <div className="flex items-center gap-3 text-amber-600">
                 <AlertCircle className="h-5 w-5" />
@@ -204,24 +147,22 @@ const ServiceDetails = () => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <ServiceStatusCard status={serviceDetails.status} />
+            <ServiceStatusCard status={serviceDetails?.status} />
             <div className="md:col-span-3">
-              {serviceDetails.serviceType !== 'type2' && (
-                <ServiceActionsCard 
-                  serviceType={serviceDetails.serviceType}
-                  vmId={serviceDetails.vmId}
+            <ServiceActionsCard 
+                  serviceType={serviceDetails?.relatedProduct?.serviceType}
+                  vmId={serviceDetails?.serviceId}
                   status={serviceDetails.status}
                 />
-              )}
             </div>
           </div>
 
           <div className="space-y-8">
-            <ResourceUtilization utilization={mockUtilization} />
+            {/* <ResourceUtilization utilization={mockUtilization} /> */}
 
             <ServiceCredentials 
               credentials={{
-                ipAddress: serviceDetails.ip,
+                ipAddress: serviceDetails.ipAddress,
                 username: serviceDetails.username,
                 password: serviceDetails.password,
               }}

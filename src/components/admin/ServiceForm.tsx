@@ -660,7 +660,7 @@ export function ServiceForm() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" />
+                          <Input {...field} type="text" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

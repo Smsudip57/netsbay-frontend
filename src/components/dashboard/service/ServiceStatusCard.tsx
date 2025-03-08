@@ -8,7 +8,7 @@ interface ServiceStatusCardProps {
 }
 
 export const ServiceStatusCard = ({ status }: ServiceStatusCardProps) => {
-  const isRunning = status === 'running';
+  const isRunning = status === 'active';
 
   return (
     <Card className="relative h-[120px] w-full overflow-hidden bg-card border shadow-sm">

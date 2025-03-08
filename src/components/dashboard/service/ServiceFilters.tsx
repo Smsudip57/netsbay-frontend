@@ -1,4 +1,3 @@
-
 import { Filter } from "lucide-react";
 import {
   Select,
@@ -11,6 +10,8 @@ import {
 interface ServiceFiltersProps {
   ipSetFilter: string;
   typeFilter: string;
+  ipSetList: string[];
+  typeList: string[];
   onIpSetFilterChange: (value: string) => void;
   onTypeFilterChange: (value: string) => void;
 }
@@ -18,6 +19,8 @@ interface ServiceFiltersProps {
 export const ServiceFilters = ({
   ipSetFilter,
   typeFilter,
+  ipSetList,
+  typeList,
   onIpSetFilterChange,
   onTypeFilterChange,
 }: ServiceFiltersProps) => {
@@ -30,11 +33,11 @@ export const ServiceFilters = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All IP Sets</SelectItem>
-          <SelectItem value="103.211">103.211</SelectItem>
-          <SelectItem value="103.157">103.157</SelectItem>
-          <SelectItem value="157.15">157.15</SelectItem>
-          <SelectItem value="38.3">38.3</SelectItem>
-          <SelectItem value="161.248">161.248</SelectItem>
+          {ipSetList.map((ip) => (
+            <SelectItem key={ip} value={ip}>
+              {ip}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Select value={typeFilter} onValueChange={onTypeFilterChange}>
@@ -43,9 +46,11 @@ export const ServiceFilters = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All OS Types</SelectItem>
-          <SelectItem value="Linux-Ubuntu">Linux-Ubuntu</SelectItem>
-          <SelectItem value="Linux-CentOS">Linux-CentOS</SelectItem>
-          <SelectItem value="Windows">Windows</SelectItem>
+          {typeList.map((type) => (
+            <SelectItem key={type} value={type}>
+              {type}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

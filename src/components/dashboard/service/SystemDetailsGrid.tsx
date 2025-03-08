@@ -6,9 +6,9 @@ interface SystemDetailsGridProps {
   details: {
     type: string;
     ipSet: string;
-    cpu: string;
-    ram: string;
-    storage: string;
+    cpu: number;
+    ram: number;
+    storage: number;
   };
 }
 
@@ -29,7 +29,7 @@ export const SystemDetailsGrid = ({ details }: SystemDetailsGridProps) => {
             <item.icon className="h-4 w-4" />
             <span className="text-sm font-medium">{item.label}</span>
           </div>
-          <p className="text-base font-medium text-foreground">{item.value}</p>
+          <p className="text-base font-medium text-foreground">{item.value} {item.label === "RAM" ? "GB" : ""} {item.label === "Storage" ? "GB" : ""}{item.label === "CPU" ? "Cores" : ""}</p>
         </Card>
       ))}
     </div>

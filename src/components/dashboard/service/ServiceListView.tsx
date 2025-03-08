@@ -11,18 +11,57 @@ import {
 } from "@/components/ui/table";
 import { ServiceStatusIcon } from "./ServiceStatusIcon";
 
-interface Service {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  ip: string;
-  expiryDate: string;
-  specs: {
-    cpu: string;
-    ram: string;
-    storage: string;
-  };
+
+type ServiceType =
+  | "Internal RDP"
+  | "External RDP"
+  | "Internal Linux"
+  | "External Linux";
+
+interface ServiceVM {
+  productId: string;
+  productName?: string;
+  Os: string;
+  serviceType: ServiceType;
+  cpu: number;
+  ram: number;
+  storage: number;
+  ipSet: string;
+  price: number;
+  Stock?: boolean;
+  createdAt?: Date;
+}
+
+ type ServiceStatus = 'unsold' | 'pending' | 'active' | 'expired' | 'terminated';
+ type TerminationReason = 'expired' | 'unpaid' | 'banned' | null;
+
+ interface Service {
+  _id?: string;
+  relatedUser: string ;
+  relatedProduct: ServiceVM;
+  
+  // Service details
+  serviceId: string;
+  serviceNickname?: string;
+  
+  // Service type
+  vmID?: number;
+  purchaseDate?: Date;
+  purchedFrom?: string;
+  EXTRLhash?: string;
+  
+  // Credentials
+  username?: string;
+  password?: string;
+  ipAddress?: string;
+  
+  // Status
+  status: ServiceStatus;
+  terminationDate: Date | null;
+  terminationReason: TerminationReason;
+  
+  createdAt: Date;
+  expiryDate?: Date;
 }
 
 interface ServiceListViewProps {
@@ -30,6 +69,16 @@ interface ServiceListViewProps {
 }
 
 export const ServiceListView = ({ services }: ServiceListViewProps) => {
+
+  const getDate = (date: Date) => {
+    const dateObj = new Date(date);
+    return dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -43,18 +92,18 @@ export const ServiceListView = ({ services }: ServiceListViewProps) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {services.map((service) => (
-          <TableRow key={service.id}>
+        {services.length > 0 ? (services.map((service) => (
+          <TableRow key={service._id}>
             <TableCell className="font-mono">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-blue-500" />
-                {service.ip}
+                {service?.ipAddress}
               </div>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
                 <Monitor className="h-4 w-4 text-slate-500" />
-                {service.type}
+                {service.relatedProduct.Os}
               </div>
             </TableCell>
             <TableCell>
@@ -65,29 +114,35 @@ export const ServiceListView = ({ services }: ServiceListViewProps) => {
             </TableCell>
             <TableCell>
               <Link 
-                to={`/dashboard/services/${service.id}`} 
+                to={`/dashboard/services/${service?.serviceId}`} 
                 className="flex items-center gap-2 hover:text-blue-500 transition-colors"
               >
                 <Server className="h-4 w-4 text-slate-500" />
-                {service.name}
+                {service?.serviceNickname}
               </Link>
             </TableCell>
             <TableCell>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                   <Database className="h-3.5 w-3.5" />
-                  {service.specs.cpu} / {service.specs.ram} / {service.specs.storage}
+                  {service?.relatedProduct?.cpu} vCPU / {service?.relatedProduct?.ram} GB / {service?.relatedProduct?.storage} GB
                 </div>
               </div>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-slate-500" />
-                {service.expiryDate}
+                {getDate(service.expiryDate)}
               </div>
             </TableCell>
           </TableRow>
-        ))}
+        )))
+        : ( <TableRow>
+            <TableCell colSpan={6} className="text-center">
+              No services found
+            </TableCell>
+          </TableRow>
+        )}
       </TableBody>
     </Table>
   );

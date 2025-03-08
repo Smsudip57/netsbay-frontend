@@ -8,97 +8,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+type ServiceType =
+  | "Internal RDP"
+  | "External RDP"
+  | "Internal Linux"
+  | "External Linux";
 
 interface ServiceVM {
-  id: string;
-  name: string;
-  type: string;
+  productId: string;
+  productName?: string;
+  Os: string;
+  serviceType: ServiceType;
   cpu: number;
   ram: number;
   storage: number;
   ipSet: string;
   price: number;
+  Stock?: boolean;
+  createdAt?: Date;
 }
 
 const BuyService = () => {
   const navigate = useNavigate();
   const ipSets = ["103.211", "103.157", "157.15", "38.3", "161.248"];
+  const [services, setServices] = useState<ServiceVM[]>([]);
   
-  const generateServicesForIpSets = () => {
-    const baseServices = [
-      {
-        baseId: "ubuntu-basic",
-        name: "Ubuntu Basic",
-        type: "Linux-Ubuntu",
-        cpu: 2,
-        ram: 2,
-        storage: 10,
-        basePrice: 100,
-      },
-      {
-        baseId: "ubuntu-pro",
-        name: "Ubuntu Pro",
-        type: "Linux-Ubuntu",
-        cpu: 4,
-        ram: 8,
-        storage: 20,
-        basePrice: 200,
-      },
-      {
-        baseId: "centos-basic",
-        name: "CentOS Basic",
-        type: "Linux-CentOS",
-        cpu: 2,
-        ram: 4,
-        storage: 10,
-        basePrice: 120,
-      },
-      {
-        baseId: "centos-pro",
-        name: "CentOS Pro",
-        type: "Linux-CentOS",
-        cpu: 6,
-        ram: 16,
-        storage: 20,
-        basePrice: 240,
-      },
-      {
-        baseId: "windows-basic",
-        name: "Windows Server Basic",
-        type: "Windows",
-        cpu: 4,
-        ram: 8,
-        storage: 30,
-        basePrice: 300,
-      },
-      {
-        baseId: "windows-pro",
-        name: "Windows Server Pro",
-        type: "Windows",
-        cpu: 8,
-        ram: 32,
-        storage: 45,
-        basePrice: 500,
-      }
-    ];
+  // const generateServicesForIpSets = () => {
+  //   return baseServices.flatMap(service => 
+  //     ipSets.map(ipSet => ({
+  //       id: `${service.baseId}-${ipSet}`,
+  //       name: service.name,
+  //       type: service.type,
+  //       cpu: service.cpu,
+  //       ram: service.ram,
+  //       storage: service.storage,
+  //       ipSet: ipSet,
+  //       price: service.basePrice,
+  //     }))
+  //   );
+  // };
 
-    return baseServices.flatMap(service => 
-      ipSets.map(ipSet => ({
-        id: `${service.baseId}-${ipSet}`,
-        name: service.name,
-        type: service.type,
-        cpu: service.cpu,
-        ram: service.ram,
-        storage: service.storage,
-        ipSet: ipSet,
-        price: service.basePrice,
-      }))
-    );
-  };
-
-  const services: ServiceVM[] = generateServicesForIpSets();
+  // const services: ServiceVM[] = generateServicesForIpSets();
 
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCPU, setSelectedCPU] = useState<string>("all");
@@ -108,13 +62,31 @@ const BuyService = () => {
 
   const filteredServices = services.filter((service) => {
     return (
-      (selectedType === "all" || service.type === selectedType) &&
+      (selectedType === "all" || service.serviceType === selectedType) &&
       (selectedCPU === "all" || service.cpu === parseInt(selectedCPU)) &&
       (selectedRAM === "all" || service.ram === parseInt(selectedRAM)) &&
       (selectedStorage === "all" || service.storage === parseInt(selectedStorage)) &&
       (selectedIPSet === "all" || service.ipSet === selectedIPSet)
     );
   });
+
+  useEffect(() => {
+    const fetchBaseServices = async () => {
+      try {
+        const res = await axios.get('/api/user/all_plans', {withCredentials: true});
+        if(res?.data){
+          setServices(res?.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchBaseServices();
+  }, []);
+
+
+
+
 
   return (
     <main className="p-6 flex-1">
@@ -128,9 +100,16 @@ const BuyService = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="Linux-Ubuntu">Linux-Ubuntu</SelectItem>
-              <SelectItem value="Linux-CentOS">Linux-CentOS</SelectItem>
-              <SelectItem value="Windows">Windows</SelectItem>
+              {[
+                "Internal RDP",
+                "External RDP",
+                "Internal Linux",
+                "External Linux",
+              ].map((type, index) => (
+                <SelectItem key={index} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -191,17 +170,17 @@ const BuyService = () => {
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredServices.map((service) => (
-            <Card key={service.id}>
+            <Card key={service.productId}>
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  {service.type === "Windows" ? (
+                  {service.serviceType.includes("RDP") ? (
                     <Monitor className="h-5 w-5" />
                   ) : (
                     <Package className="h-5 w-5" />
                   )}
-                  <CardTitle>{service.name}</CardTitle>
+                  <CardTitle>{service?.productName}</CardTitle>
                 </div>
-                <CardDescription>{service.type}</CardDescription>
+                <CardDescription>{service?.Os}</CardDescription>
                 <div className="mt-2 inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-md">
                   <Network className="h-4 w-4" />
                   <span className="font-medium">IP Set: {service.ipSet}</span>

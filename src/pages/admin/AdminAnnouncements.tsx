@@ -39,7 +39,7 @@ const AdminAnnouncements = () => {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const res = await axios.get("/api/admin/announcements", {withCredentials: true });
+        const res = await axios.get("/api/user/announcements", {withCredentials: true });
         if(res?.data){
           setAnnouncements(res?.data);
         }

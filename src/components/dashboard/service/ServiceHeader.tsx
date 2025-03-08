@@ -11,9 +11,10 @@ interface ServiceHeaderProps {
   id: string;
   type: string;
   status: string;
+  date: Date;
 }
 
-export const ServiceHeader = ({ nickname: initialNickname, id, type, status }: ServiceHeaderProps) => {
+export const ServiceHeader = ({ nickname: initialNickname, id, type, status, date }: ServiceHeaderProps) => {
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [nickname, setNickname] = useState(initialNickname);
   const [copied, setCopied] = useState(false);
@@ -40,6 +41,15 @@ export const ServiceHeader = ({ nickname: initialNickname, id, type, status }: S
       toast.error("Failed to copy Service ID");
     }
   };
+
+  const getDate = (date: Date) => {
+    const dateObj = new Date(date);
+    return dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -107,7 +117,7 @@ export const ServiceHeader = ({ nickname: initialNickname, id, type, status }: S
       
       <div className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-background/50">
         <Calendar className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Expires: 2024-12-31</span>
+        <span className="text-sm font-medium">Expires: {getDate(date)}</span>
       </div>
     </div>
   );
