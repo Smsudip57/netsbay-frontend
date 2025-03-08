@@ -25,6 +25,7 @@ jobs:
       - name: Deploy to VPS and Build
         run: |
           sshpass -p "Netbay@1234" ssh -o StrictHostKeyChecking=no root@161.248.1.254 << 'EOF'
+            nvm use 20
             cd /var/www/netsbay-frontend
 
             echo "Node Version: $(node -v)"
