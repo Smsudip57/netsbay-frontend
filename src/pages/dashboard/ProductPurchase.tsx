@@ -44,7 +44,7 @@ const ProductPurchase = () => {
   const navigate = useNavigate();
   const initialService = (location.state as LocationState)?.service || null;
   const [service, setService] = useState(initialService);
-  const { user } = useAppContext();
+  const { user, setUser } = useAppContext();
   const [quantity, setQuantity] = useState("1");
   const [couponCode, setCouponCode] = useState("");
   const [totalPrice, setTotalPrice] = useState( Number(quantity) * service?.price);
@@ -79,6 +79,7 @@ const ProductPurchase = () => {
         withCredentials: true,
       });
       if (res?.data) {
+        setUser((prev) => ({ ...prev, balance: prev.balance - totalPrice }));
         toast.success(res?.data?.message);
         navigate("/dashboard/services");
       }

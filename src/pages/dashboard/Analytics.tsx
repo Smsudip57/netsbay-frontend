@@ -1,56 +1,38 @@
-
-import { useState } from "react";
-import { BarChart3, Server, Activity, Bell, Wallet, Calendar, Clock, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  BarChart3,
+  Server,
+  Activity,
+  Bell,
+  Wallet,
+  Calendar,
+  Clock,
+  TrendingUp,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { AnyAaaaRecord } from "node:dns";
 
-const announcements = [
-  {
-    id: 1,
-    subject: "System Maintenance Schedule",
-    body: "Scheduled maintenance will be performed on Saturday, March 15th from 2 AM to 4 AM UTC.",
-    date: "2024-03-10",
-    priority: "high"
-  },
-  {
-    id: 2,
-    subject: "New Features Released",
-    body: "We've added new monitoring tools and improved the dashboard interface.",
-    date: "2024-03-08",
-    priority: "medium"
-  },
-  {
-    id: 3,
-    subject: "Security Update",
-    body: "Important security patches have been applied to all services.",
-    date: "2024-03-05",
-    priority: "high"
-  },
-  {
-    id: 4,
-    subject: "Platform Upgrade Notice",
-    body: "Platform improvements scheduled for next week.",
-    date: "2024-03-03",
-    priority: "medium"
-  },
-  {
-    id: 5,
-    subject: "Holiday Support Hours",
-    body: "Modified support hours during upcoming holidays.",
-    date: "2024-03-02",
-    priority: "low"
-  },
-  {
-    id: 6,
-    subject: "New Service Regions",
-    body: "Additional service regions now available.",
-    date: "2024-03-01",
-    priority: "medium"
+const getPriorityColor = (date: Date, status:boolean) => {
+  const currentDate = new Date();
+  const givenDate = new Date(date);
+  const diffTime = currentDate.getTime() - givenDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  // Determine priority based on date age
+  let priority: string;
+  if (diffDays < 5) {
+    priority = "high";
+  } else if (diffDays < 10) {
+    priority = "medium";
+  } else {
+    priority = "low";
   }
-];
-
-const getPriorityColor = (priority: string) => {
+  if (status) {
+    return priority;
+  }
   switch (priority) {
     case "high":
       return "bg-red-50 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30";
@@ -62,17 +44,41 @@ const getPriorityColor = (priority: string) => {
 };
 
 const Analytics = () => {
+  const [announcements, setannouncements] = useState<any>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const announcementsPerPage = 5;
-  
+
   // Calculate pagination
   const indexOfLastAnnouncement = currentPage * announcementsPerPage;
-  const indexOfFirstAnnouncement = indexOfLastAnnouncement - announcementsPerPage;
+  const indexOfFirstAnnouncement =
+    indexOfLastAnnouncement - announcementsPerPage;
   const currentAnnouncements = announcements.slice(
     indexOfFirstAnnouncement,
     indexOfLastAnnouncement
   );
   const totalPages = Math.ceil(announcements.length / announcementsPerPage);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/api/user/announcements", {
+          withCredentials: true,
+        });
+        if (res?.data) {
+          setannouncements(res?.data);
+        }
+      } catch (error) {}
+    };
+    fetchData();
+  }, []);
+
+  const getDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <main className="p-6 flex-1">
@@ -90,7 +96,9 @@ const Analytics = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="hover:shadow-lg transition-all duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">My Services</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  My Services
+                </CardTitle>
                 <Server className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -103,7 +111,9 @@ const Analytics = () => {
 
             <Card className="hover:shadow-lg transition-all duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Average Uptime</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Average Uptime
+                </CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -116,7 +126,9 @@ const Analytics = () => {
 
             <Card className="hover:shadow-lg transition-all duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Billing Period</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Billing Period
+                </CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -129,7 +141,9 @@ const Analytics = () => {
 
             <Card className="hover:shadow-lg transition-all duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Resource Usage</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Resource Usage
+                </CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -154,28 +168,43 @@ const Analytics = () => {
             </TabsList>
 
             <TabsContent value="announcements" className="space-y-4">
-              {currentAnnouncements.map((announcement) => (
-                <Card key={announcement.id} className="hover:shadow-lg transition-all duration-200">
+              {currentAnnouncements.map((announcement: any) => (
+                <Card
+                  key={announcement._id}
+                  className="hover:shadow-lg transition-all duration-200"
+                >
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div className="space-y-1">
-                      <CardTitle className="text-base font-semibold">{announcement.subject}</CardTitle>
-                      <div className="text-sm text-muted-foreground">{announcement.date}</div>
+                      <CardTitle className="text-base font-semibold">
+                        {announcement?.subject}
+                      </CardTitle>
+                      <div className="text-sm text-muted-foreground">
+                        {getDate(announcement?.createdAt)}
+                      </div>
                     </div>
-                    <span className={`text-xs px-3 py-1 rounded-full ${getPriorityColor(announcement.priority)} border`}>
-                      {announcement.priority}
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full ${getPriorityColor(
+                        announcement?.createdAt, false
+                      )} border`}
+                    >
+                      {getPriorityColor(announcement?.createdAt, true)}
                     </span>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground">{announcement.body}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {announcement.body}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
-              
+
               <div className="flex justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
                 >
                   Previous
@@ -186,7 +215,9 @@ const Analytics = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   Next
@@ -202,14 +233,26 @@ const Analytics = () => {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <Card className="p-4">
-                      <div className="text-sm font-medium mb-2">Average Response Time</div>
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">45ms</div>
-                      <div className="text-xs text-muted-foreground">-5ms from last week</div>
+                      <div className="text-sm font-medium mb-2">
+                        Average Response Time
+                      </div>
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        45ms
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        -5ms from last week
+                      </div>
                     </Card>
                     <Card className="p-4">
-                      <div className="text-sm font-medium mb-2">Total Bandwidth Usage</div>
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">1.2 TB</div>
-                      <div className="text-xs text-muted-foreground">+0.3 TB from last month</div>
+                      <div className="text-sm font-medium mb-2">
+                        Total Bandwidth Usage
+                      </div>
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        1.2 TB
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        +0.3 TB from last month
+                      </div>
                     </Card>
                   </div>
                 </CardContent>

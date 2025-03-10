@@ -18,17 +18,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/context/context";
-import { 
-  Cpu, 
-  HardDrive, 
-  Activity, 
-  Server, 
-  Wallet as WalletIcon, 
-  Receipt, 
+import {
+  Cpu,
+  HardDrive,
+  Activity,
+  Server,
+  Wallet as WalletIcon,
+  Receipt,
   Plus,
   ArrowRight,
   Bell,
-  ShieldCheck 
+  ShieldCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -47,20 +47,20 @@ const mockTransactions = [
 ];
 
 const DashboardHome = () => {
-  const [services,setServices] = useState<any>();
+  const [services, setServices] = useState<any>();
   const { user } = useAppContext();
-  
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await axios.get("/api/user/services", { withCredentials: true });
-        if(res?.data) {
+        const res = await axios.get("/api/user/services", {
+          withCredentials: true,
+        });
+        if (res?.data) {
           setServices(res?.data);
         }
-      } catch (error) {
-        
-      }
-    }
+      } catch (error) {}
+    };
     fetchServices();
   }, []);
 
@@ -71,10 +71,15 @@ const DashboardHome = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
-              <p className="text-muted-foreground">Here's what's happening with your services.</p>
+              <p className="text-muted-foreground">
+                Here's what's happening with your services.
+              </p>
             </div>
             <Button asChild>
-              <Link to="/dashboard/buy-service" className="flex items-center gap-2">
+              <Link
+                to="/dashboard/buy-service"
+                className="flex items-center gap-2"
+              >
                 <Plus className="h-4 w-4" />
                 Add New Service
               </Link>
@@ -86,7 +91,10 @@ const DashboardHome = () => {
               title="Active Services"
               value={services?.length}
               icon={<Server className="h-4 w-4" />}
-              description={`${services?.filter((service: any) => service?.status === 'active')?.length} services running`}
+              description={`${
+                services?.filter((service: any) => service?.status === "active")
+                  ?.length
+              } services running`}
               variant="default"
             />
             <StatsCard
@@ -105,7 +113,13 @@ const DashboardHome = () => {
             />
             <StatsCard
               title="Total Storage"
-              value={`${services?.filter((service: any) => service?.status === 'active')?.reduce((acc: number, service: any) => acc + service?.relatedProduct?.storage, 0)} GB`}
+              value={`${services
+                ?.filter((service: any) => service?.status === "active")
+                ?.reduce(
+                  (acc: number, service: any) =>
+                    acc + service?.relatedProduct?.storage,
+                  0
+                )} GB`}
               icon={<HardDrive className="h-4 w-4" />}
               description="250 GB available"
               variant="default"
@@ -116,9 +130,14 @@ const DashboardHome = () => {
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">Active Services</CardTitle>
+              <CardTitle className="text-lg font-medium">
+                Active Services
+              </CardTitle>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard/services" className="flex items-center gap-1">
+                <Link
+                  to="/dashboard/services"
+                  className="flex items-center gap-1"
+                >
                   View All
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -126,32 +145,55 @@ const DashboardHome = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockServices.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex items-center justify-between p-3 bg-accent/50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Server className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{service.name}</p>
-                        <p className="text-sm text-muted-foreground">{service.type}</p>
+                {services
+                  ?.filter((service: any) => {
+                    const expiryTimestamp =
+                      typeof service?.expiryDate === "string"
+                        ? new Date(service.expiryDate).getTime()
+                        : service?.expiryDate;
+
+                    return expiryTimestamp > Date.now();
+                  })
+                  ?.slice(0, 3)
+                  ?.map((service: any) => (
+                    <div
+                      key={service.id}
+                      className="flex items-center justify-between p-3 bg-accent/50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Server className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">
+                            {service?.serviceNickname}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {service?.relatedProduct?.Os}
+                          </p>
+                        </div>
                       </div>
+                      <Badge
+                        variant={
+                          service?.status === "active" ? "default" : "secondary"
+                        }
+                      >
+                        {service?.status}
+                      </Badge>
                     </div>
-                    <Badge variant={service.status === 'online' ? 'default' : 'secondary'}>
-                      {service.status}
-                    </Badge>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">Recent Activity</CardTitle>
+              <CardTitle className="text-lg font-medium">
+                Recent Activity
+              </CardTitle>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard/transactions" className="flex items-center gap-1">
+                <Link
+                  to="/dashboard/transactions"
+                  className="flex items-center gap-1"
+                >
                   View All
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -168,10 +210,18 @@ const DashboardHome = () => {
                       <Receipt className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="font-medium">{transaction.type}</p>
-                        <p className="text-sm text-muted-foreground">{transaction.date}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {transaction.date}
+                        </p>
                       </div>
                     </div>
-                    <span className={transaction.amount.startsWith('-') ? 'text-red-500' : 'text-green-500'}>
+                    <span
+                      className={
+                        transaction.amount.startsWith("-")
+                          ? "text-red-500"
+                          : "text-green-500"
+                      }
+                    >
                       {transaction.amount}
                     </span>
                   </div>
@@ -187,25 +237,41 @@ const DashboardHome = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Button variant="outline" className="h-24 flex flex-col gap-2" asChild>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col gap-2"
+                asChild
+              >
                 <Link to="/dashboard/wallet">
                   <WalletIcon className="h-5 w-5" />
                   <span>Add Funds</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="h-24 flex flex-col gap-2" asChild>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col gap-2"
+                asChild
+              >
                 <Link to="/dashboard/requests">
                   <Bell className="h-5 w-5" />
                   <span>Support Requests</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="h-24 flex flex-col gap-2" asChild>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col gap-2"
+                asChild
+              >
                 <Link to="/dashboard/toolkit">
                   <ShieldCheck className="h-5 w-5" />
                   <span>Security Tools</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="h-24 flex flex-col gap-2" asChild>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col gap-2"
+                asChild
+              >
                 <Link to="/dashboard/invoices">
                   <Receipt className="h-5 w-5" />
                   <span>Billing History</span>

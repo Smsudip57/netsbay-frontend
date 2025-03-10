@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ServiceStatusIcon } from "./ServiceStatusIcon";
+import { useNavigate } from "react-router-dom";
 
 
 type ServiceType =
@@ -69,6 +70,7 @@ interface ServiceListViewProps {
 }
 
 export const ServiceListView = ({ services }: ServiceListViewProps) => {
+  const router = useNavigate();
 
   const getDate = (date: Date) => {
     const dateObj = new Date(date);
@@ -93,7 +95,7 @@ export const ServiceListView = ({ services }: ServiceListViewProps) => {
       </TableHeader>
       <TableBody>
         {services.length > 0 ? (services.map((service) => (
-          <TableRow key={service._id}>
+          <TableRow key={service._id} onClick={()=> router(`/dashboard/services/${service?.serviceId}`)} className="cursor-pointer">
             <TableCell className="font-mono">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-blue-500" />
@@ -113,13 +115,12 @@ export const ServiceListView = ({ services }: ServiceListViewProps) => {
               </div>
             </TableCell>
             <TableCell>
-              <Link 
-                to={`/dashboard/services/${service?.serviceId}`} 
+              <div
                 className="flex items-center gap-2 hover:text-blue-500 transition-colors"
               >
                 <Server className="h-4 w-4 text-slate-500" />
                 {service?.serviceNickname}
-              </Link>
+              </div>
             </TableCell>
             <TableCell>
               <div className="space-y-1">

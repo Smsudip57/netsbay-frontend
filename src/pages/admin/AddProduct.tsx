@@ -15,8 +15,6 @@ import {
 import { toast } from "sonner";
 import axios from "axios";
 
-
-
 const AddProduct = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -31,6 +29,8 @@ const AddProduct = () => {
     os: "",
     price: "", // Price in NC
   });
+  const [ipsets, setIpsets] = useState<string[]>([]);
+  const [osTypes, setOsTypes] = useState<string[]>([]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({
@@ -39,30 +39,41 @@ const AddProduct = () => {
     }));
   };
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.productName || !formData.ipSet || !formData.networkType || 
-        !formData.cpu || !formData.ram || !formData.storage || !formData.os || !formData.price) {
+
+    if (
+      !formData.productName ||
+      !formData.ipSet ||
+      !formData.networkType ||
+      !formData.cpu ||
+      !formData.ram ||
+      !formData.storage ||
+      !formData.os ||
+      !formData.price
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
     try {
-      const res = await axios.post("/api/admin/add_product", formData, {withCredentials: true});
-      if(res?.data?.success) {
+      const res = await axios.post("/api/admin/add_product", formData, {
+        withCredentials: true,
+      });
+      if (res?.data?.success) {
         toast.success("Product added successfully");
         navigate("/admin/products");
       }
     } catch (error) {
       toast.error("Failed to add product");
     }
-
   };
 
   useEffect(() => {
-    const generateProductId = async() => {
+    const generateProductId = async () => {
       try {
-        const res = await axios.get("/api/admin/generate_id",{withCredentials: true}); 
+        const res = await axios.get("/api/admin/generate_id", {
+          withCredentials: true,
+        });
         setFormData((prev) => ({
           ...prev,
           productId: res?.data?.id,
@@ -72,6 +83,26 @@ const AddProduct = () => {
       }
     };
     generateProductId();
+  }, []);
+
+  useEffect(() => {
+    const fetchIpsets = async () => {
+      try {
+        const res = await axios.get("/api/admin/system", {
+          params: { name: "ipSets" },
+          withCredentials: true,
+        });
+        const osres = await axios.get("/api/admin/system", {
+          params: { name: "osType" },
+          withCredentials: true,  
+        });
+        setOsTypes(osres?.data);
+        setIpsets(res?.data);
+      } catch (error) {
+        console.error("Error fetching ipsets:", error);
+      }
+    };
+    fetchIpsets();
   }, []);
 
   return (
@@ -89,10 +120,13 @@ const AddProduct = () => {
             <CardTitle>Product Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit(e);
-            }} className="space-y-6">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(e);
+              }}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="productId">Product ID</Label>
@@ -109,39 +143,52 @@ const AddProduct = () => {
                   <Input
                     id="productName"
                     value={formData.productName}
-                    onChange={(e) => handleInputChange("productName", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("productName", e.target.value)
+                    }
                     placeholder="Enter product name"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="ipSet">IP Set</Label>
-                  <Select onValueChange={(value) => handleInputChange("ipSet", value)}>
+                  <Select
+                    onValueChange={(value) => handleInputChange("ipSet", value)}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select IP Set" />
+                      <SelectValue placeholder={ipsets?.length > 0 ? "Select IP Set" : "No IP Sets Found"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="103.211">103.211</SelectItem>
-                      <SelectItem value="103.157">103.157</SelectItem>
-                      <SelectItem value="157.15">157.15</SelectItem>
-                      <SelectItem value="38.3">38.3</SelectItem>
-                      <SelectItem value="161.248">161.248</SelectItem>
+                      {ipsets?.length>0 && ipsets?.map((ipset:any, index) => (
+                        <SelectItem key={index} value={ipset?.value}>
+                          {ipset?.value}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="networkType">VM Type</Label>
-                  <Select onValueChange={(value) => handleInputChange("networkType", value)}>
+                  <Select
+                    onValueChange={(value) =>
+                      handleInputChange("networkType", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Network Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {
-                        ["Internal RDP","External RDP","Internal Linux","External Linux"].map((networkType, index) => (
-                          <SelectItem key={index} value={networkType}>{networkType}</SelectItem>
-                        ))
-                      }
+                      {[
+                        "Internal RDP",
+                        "External RDP",
+                        "Internal Linux",
+                        "External Linux",
+                      ].map((networkType, index) => (
+                        <SelectItem key={index} value={networkType}>
+                          {networkType}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -174,13 +221,33 @@ const AddProduct = () => {
                     id="storage"
                     type="number"
                     value={formData.storage}
-                    onChange={(e) => handleInputChange("storage", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("storage", e.target.value)
+                    }
                     placeholder="e.g., 20"
                   />
                 </div>
 
                 <div className="space-y-2">
-                <Label htmlFor="os">Operating System</Label>
+                  <Label htmlFor="os">Operating System</Label>
+                  <Select
+                    onValueChange={(value) => handleInputChange("os", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={osTypes?.length > 0 ? "Select OS" : "No Os Found"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {osTypes?.length>0 && osTypes?.map((os: any, index) => (
+                        <SelectItem key={index} value={os?.value}>
+                          {os?.value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* <div className="space-y-2">
+                  <Label htmlFor="os">Operating System</Label>
                   <Input
                     id="os"
                     type="text"
@@ -188,7 +255,7 @@ const AddProduct = () => {
                     onChange={(e) => handleInputChange("os", e.target.value)}
                     placeholder="OS name"
                   />
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (NC)</Label>
@@ -208,10 +275,14 @@ const AddProduct = () => {
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={formData.inStock}
-                      onCheckedChange={(checked) => handleInputChange("inStock", checked)}
+                      onCheckedChange={(checked) =>
+                        handleInputChange("inStock", checked)
+                      }
                     />
                     <span className="text-sm text-muted-foreground">
-                      {formData.inStock ? "Product is in stock" : "Product is out of stock"}
+                      {formData.inStock
+                        ? "Product is in stock"
+                        : "Product is out of stock"}
                     </span>
                   </div>
                 </div>

@@ -70,7 +70,6 @@ interface Product {
   createdAt?: Date;
 }
 
-// const products = [
 //   {
 //     id: "ubuntu-internal",
 //     name: "Ubuntu Server (Internal)",
@@ -156,6 +155,9 @@ export function ServiceForm() {
       hashCode?: string;
     }>
   >([]);
+  const [providers, setProviders] = useState<{ _id: string; value: string }[]>(
+    []
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -190,8 +192,25 @@ export function ServiceForm() {
     fetchProducts();
   }, []);
 
-  const onSubmit = async(data: FormValues) => {
-    let reqData = []
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const response = await axios.get("/api/admin/system", {
+          params: { name: "providers" },
+          withCredentials: true,
+        });
+        setProviders(response?.data);
+      } catch (error) {
+        console.error("Error fetching providers:", error);
+      }
+    };
+
+    fetchProviders();
+  }, []);
+
+  const onSubmit = async (data: FormValues) => {
+    console.log(data);
+    let reqData = [];
     if (isBulkMode && data.bulkData) {
       const lines = data.bulkData.split("\n").filter((line) => line.trim());
       lines.forEach((line) => {
@@ -220,8 +239,8 @@ export function ServiceForm() {
     try {
       const res = await axios.post("/api/admin/add_services", reqData, {
         withCredentials: true,
-      })
-      if(res?.data){
+      });
+      if (res?.data) {
         toast.success(res?.data?.message);
       }
     } catch (error) {
@@ -457,8 +476,8 @@ export function ServiceForm() {
                         </FormControl>
                         <SelectContent>
                           {providers.map((provider) => (
-                            <SelectItem key={provider.id} value={provider.id}>
-                              {provider.name}
+                            <SelectItem key={provider?._id} value={provider?.value}>
+                              {provider?.value}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -593,10 +612,10 @@ export function ServiceForm() {
                             <SelectContent>
                               {providers.map((provider) => (
                                 <SelectItem
-                                  key={provider.id}
-                                  value={provider.id}
+                                  key={provider?._id}
+                                  value={provider?.value}
                                 >
-                                  {provider.name}
+                                  {provider?.value}
                                 </SelectItem>
                               ))}
                             </SelectContent>

@@ -165,7 +165,7 @@ const AdminProducts = () => {
         });
         if (response?.data) {
           setService(response?.data);
-          
+
           setServiceStates((prev) => {
             const initialStates: { [key: string]: boolean } = {};
             response?.data.forEach((service) => {
@@ -188,10 +188,16 @@ const AdminProducts = () => {
 
   const handleDelete = async (serviceId: string) => {
     try {
-      const res = await axios.post(`/api/admin/delete_product`, { productId: serviceId }, {withCredentials: true});
-      if(res?.data){
+      const res = await axios.post(
+        `/api/admin/delete_product`,
+        { productId: serviceId },
+        { withCredentials: true }
+      );
+      if (res?.data) {
         toast.success(res?.data?.message);
-        setService((prev) => prev.filter((service) => service.productId !== serviceId));
+        setService((prev) =>
+          prev.filter((service) => service.productId !== serviceId)
+        );
       }
     } catch (error) {
       toast.error("Failed to delete service.");
@@ -200,7 +206,7 @@ const AdminProducts = () => {
 
   const handleToggleService = async (serviceId: string) => {
     try {
-      const response:any =  await axios.post(
+      const response: any = await axios.post(
         `/api/admin/stock_product`,
         {
           productId: serviceId,
@@ -209,8 +215,8 @@ const AdminProducts = () => {
         {
           withCredentials: true,
         }
-      )
-      if(response) {
+      );
+      if (response) {
         setServiceStates((prev) => ({
           ...prev,
           [serviceId]: !prev[serviceId],
@@ -220,7 +226,6 @@ const AdminProducts = () => {
     } catch (error) {
       toast.error("Failed to update service state.");
     }
- 
   };
 
   return (
@@ -234,25 +239,19 @@ const AdminProducts = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <Select onValueChange={setSelectedType} value={selectedType}>
+          <Select onValueChange={setSelectedIPSet} value={selectedIPSet}>
             <SelectTrigger>
-              <SelectValue placeholder="Select Type" />
+              <SelectValue placeholder="Select IP Set" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {[
-                "Internal RDP",
-                "External RDP",
-                "Internal Linux",
-                "External Linux",
-              ].map((type, index) => (
-                <SelectItem key={index} value={type}>
-                  {type}
+              <SelectItem value="all">All IP Sets</SelectItem>
+              {ipSets.map((ip) => (
+                <SelectItem key={ip} value={ip}>
+                  {ip}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-
           <Select onValueChange={setSelectedCPU} value={selectedCPU}>
             <SelectTrigger>
               <SelectValue placeholder="Select CPU" />
@@ -293,15 +292,20 @@ const AdminProducts = () => {
             </SelectContent>
           </Select>
 
-          <Select onValueChange={setSelectedIPSet} value={selectedIPSet}>
+          <Select onValueChange={setSelectedType} value={selectedType}>
             <SelectTrigger>
-              <SelectValue placeholder="Select IP Set" />
+              <SelectValue placeholder="Select Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All IP Sets</SelectItem>
-              {ipSets.map((ip) => (
-                <SelectItem key={ip} value={ip}>
-                  {ip}
+              <SelectItem value="all">All Types</SelectItem>
+              {[
+                "Internal RDP",
+                "External RDP",
+                "Internal Linux",
+                "External Linux",
+              ].map((type, index) => (
+                <SelectItem key={index} value={type}>
+                  {type}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -319,7 +323,7 @@ const AdminProducts = () => {
                     ) : (
                       <Package className="h-5 w-5 text-primary" />
                     )}
-                    <CardTitle className="text-lg">{service.Os}</CardTitle>
+                    <CardTitle className="text-lg">{service.productName}</CardTitle>
                   </div>
                   <Switch
                     checked={serviceStates[service?.productId]}
@@ -363,9 +367,7 @@ const AdminProducts = () => {
                     <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md">
                       <FolderCode className="h-4 w-4 text-primary" />
                       <span className="text-sm">
-                        {service?.serviceType.includes("RDP")
-                          ? "Windows"
-                          : "Linux"}
+                        {service?.Os}
                       </span>
                     </div>
                   </div>

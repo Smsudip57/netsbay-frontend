@@ -37,22 +37,6 @@ const BuyService = () => {
   const ipSets = ["103.211", "103.157", "157.15", "38.3", "161.248"];
   const [services, setServices] = useState<ServiceVM[]>([]);
   
-  // const generateServicesForIpSets = () => {
-  //   return baseServices.flatMap(service => 
-  //     ipSets.map(ipSet => ({
-  //       id: `${service.baseId}-${ipSet}`,
-  //       name: service.name,
-  //       type: service.type,
-  //       cpu: service.cpu,
-  //       ram: service.ram,
-  //       storage: service.storage,
-  //       ipSet: ipSet,
-  //       price: service.basePrice,
-  //     }))
-  //   );
-  // };
-
-  // const services: ServiceVM[] = generateServicesForIpSets();
 
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCPU, setSelectedCPU] = useState<string>("all");
@@ -94,25 +78,19 @@ const BuyService = () => {
         <h2 className="text-3xl font-bold mb-6">Available Virtual Machines</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <Select onValueChange={setSelectedType} value={selectedType}>
+        <Select onValueChange={setSelectedIPSet} value={selectedIPSet}>
             <SelectTrigger>
-              <SelectValue placeholder="Select Type" />
+              <SelectValue placeholder="Select IP Set" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {[
-                "Internal RDP",
-                "External RDP",
-                "Internal Linux",
-                "External Linux",
-              ].map((type, index) => (
-                <SelectItem key={index} value={type}>
-                  {type}
+              <SelectItem value="all">All IP Sets</SelectItem>
+              {ipSets.map((ip) => (
+                <SelectItem key={ip} value={ip}>
+                  {ip}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-
           <Select onValueChange={setSelectedCPU} value={selectedCPU}>
             <SelectTrigger>
               <SelectValue placeholder="Select CPU" />
@@ -153,19 +131,27 @@ const BuyService = () => {
             </SelectContent>
           </Select>
 
-          <Select onValueChange={setSelectedIPSet} value={selectedIPSet}>
+         
+
+          <Select onValueChange={setSelectedType} value={selectedType}>
             <SelectTrigger>
-              <SelectValue placeholder="Select IP Set" />
+              <SelectValue placeholder="Select Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All IP Sets</SelectItem>
-              {ipSets.map((ip) => (
-                <SelectItem key={ip} value={ip}>
-                  {ip}
+              <SelectItem value="all">All Types</SelectItem>
+              {[
+                "Internal RDP",
+                "External RDP",
+                "Internal Linux",
+                "External Linux",
+              ].map((type, index) => (
+                <SelectItem key={index} value={type}>
+                  {type}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
         </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
