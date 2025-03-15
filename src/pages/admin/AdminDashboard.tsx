@@ -15,6 +15,7 @@ import AdminAnnouncements from "./AdminAnnouncements";
 import AdminRequests from "./AdminRequests";
 import AdminInvoices from "./AdminInvoices";
 import AdminLogs from "./AdminLogs";
+import AdminConstants from "./AdminConstants";
 import Coupons from "./Coupons";
 import AddCoupon from "./AddCoupon";
 import AddCoinCoupon from "./AddCoinCoupon";
@@ -68,6 +69,7 @@ const AdminDashboard = () => {
             <Route path="coupons" element={<Coupons />} />
             <Route path="coupons/add" element={<AddCoupon />} />
             <Route path="coupons/add-coin" element={<AddCoinCoupon />} />
+            <Route path="constants" element={<AdminConstants />} />
             <Route path="logs" element={<AdminLogs />} />
           </Routes>
         </div>

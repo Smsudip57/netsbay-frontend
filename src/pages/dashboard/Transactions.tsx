@@ -8,35 +8,64 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { get } from "http";
+
 
 const Transactions = () => {
-  // Sample transactions data for service purchases
-  const transactions = [
-    {
-      id: "TRX-001",
-      date: "2024-02-20",
-      description: "Basic VPS Server Purchase",
-      type: "VPS",
-      icon: <Server className="h-4 w-4" />,
-      amount: 100,
-    },
-    {
-      id: "TRX-002",
-      date: "2024-02-19",
-      description: "DDoS Protection Service",
-      type: "Security",
-      icon: <Shield className="h-4 w-4" />,
-      amount: 50,
-    },
-    {
-      id: "TRX-003",
-      date: "2024-02-18",
-      description: "CPU Upgrade Package",
-      type: "Hardware",
-      icon: <Cpu className="h-4 w-4" />,
-      amount: 75,
-    },
-  ];
+  const [transactions, setTransactions] = useState([]);
+  // const transactions = [
+  //   {
+  //     id: "TRX-001",
+  //     date: "2024-02-20",
+  //     description: "Basic VPS Server Purchase",
+  //     type: "VPS",
+  //     icon: <Server className="h-4 w-4" />,
+  //     amount: 100,
+  //   },
+  //   {
+  //     id: "TRX-002",
+  //     date: "2024-02-19",
+  //     description: "DDoS Protection Service",
+  //     type: "Security",
+  //     icon: <Shield className="h-4 w-4" />,
+  //     amount: 50,
+  //   },
+  //   {
+  //     id: "TRX-003",
+  //     date: "2024-02-18",
+  //     description: "CPU Upgrade Package",
+  //     type: "Hardware",
+  //     icon: <Cpu className="h-4 w-4" />,
+  //     amount: 75,
+  //   },
+  // ];
+
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const res = await axios.get("/api/user/transactions", {
+          withCredentials: true,
+        });
+        setTransactions(res?.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchTransactions();
+  }, []);
+
+
+  const getDate = (date: string) => {
+    const d = new Date(date);
+    return d.toLocaleDateString("en-GB", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <main className="p-6 flex-1">
@@ -60,19 +89,19 @@ const Transactions = () => {
               </TableHeader>
               <TableBody>
                 {transactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">{transaction.id}</TableCell>
-                    <TableCell>{transaction.date}</TableCell>
+                  <TableRow key={transaction?.transactionId}>
+                    <TableCell className="font-medium">{transaction?.transactionId}</TableCell>
+                    <TableCell>{getDate(transaction?.createdAt)}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-2">
-                        {transaction.icon}
-                        {transaction.type}
+                        {/* {transaction.icon} */}
+                        {transaction?.type}
                       </span>
                     </TableCell>
-                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell>{transaction?.description}</TableCell>
                     <TableCell className="text-right">
                       <span className="inline-flex items-center gap-1 font-medium">
-                        {transaction.amount} NC
+                        {transaction?.amount} NC
                       </span>
                     </TableCell>
                   </TableRow>

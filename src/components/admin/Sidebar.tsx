@@ -1,4 +1,4 @@
-import { Home, Plus, Server, Package, MessageSquare, FileText, Scroll, Menu as MenuIcon, X as XIcon, Users, Bell, Ticket } from "lucide-react";
+import { Home, Plus, Server, Package, MessageSquare, FileText, Scroll, Menu as MenuIcon, X as XIcon, Users, Bell, Ticket, WrapText  } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +27,7 @@ const menuItems = [
   { title: "Requests", icon: MessageSquare, url: "/admin/requests" },
   { title: "Invoices", icon: FileText, url: "/admin/invoices" },
   { title: "Coupons", icon: Ticket, url: "/admin/coupons" },
+  { title: "Constants", icon: WrapText , url: "/admin/constants" },
   { title: "Logs", icon: Scroll, url: "/admin/logs" },
 ];
 
