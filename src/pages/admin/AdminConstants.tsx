@@ -194,7 +194,7 @@ const AdminLogs = () => {
   return (
     <main className="p-6 flex-1">
       <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-100/50">
-        <h1 className="text-3xl font-bold mb-6">System Logs</h1>
+        <h1 className="text-3xl font-bold mb-6">System Constants</h1>
 
         <Card className="p-6">
           <h2 className="text-2xl font-bold">Ipsets</h2>
