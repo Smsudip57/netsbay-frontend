@@ -3,54 +3,79 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CreditCard, Smartphone, Bitcoin } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
+import { useAppContext } from "@/context/context";
+import { useNavigate } from "react-router-dom";
+
+interface Package {
+  id: number;
+  coins: number;
+  priceINR: number;
+  priceUSD: number;
+}
 
 const PurchaseNetcoins = () => {
-  const packages = [
-    { coins: 200, priceINR: 200, priceUSD: Math.ceil(200 / 83) },
-    { coins: 500, priceINR: 500, priceUSD: Math.ceil(500 / 83) },
-    { coins: 1000, priceINR: 1000, priceUSD: Math.ceil(1000 / 83) },
-    { coins: 2000, priceINR: 2000, priceUSD: Math.ceil(2000 / 83) },
-  ];
-
+  const [packages, setPackages] = useState<Package[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("upi");
+  const { user } = useAppContext();
+  const navigate = useNavigate();
 
   const calculateTax = (amount: number) => amount * 0.18; // 18% GST
-  const calculateTotal = (amount: number, includeTax: boolean) => 
+  const calculateTotal = (amount: number, includeTax: boolean) =>
     includeTax ? amount + calculateTax(amount) : amount;
 
-  const selectedPrice = selectedPackage !== null 
-    ? packages.find(pkg => pkg.coins === selectedPackage)?.priceINR || 0 
-    : 0;
+  const selectedPrice =
+    selectedPackage !== null
+      ? packages.find((pkg) => pkg.id === selectedPackage)?.priceINR || 0
+      : 0;
 
-  const selectedPriceUSD = selectedPackage !== null 
-    ? packages.find(pkg => pkg.coins === selectedPackage)?.priceUSD || 0 
-    : 0;
+  const selectedPriceUSD =
+    selectedPackage !== null
+      ? packages.find((pkg) => pkg.id === selectedPackage)?.priceUSD || 0
+      : 0;
 
-  const handlePayment = () => {
+  useEffect(() => {
+    const fetchdata = async () => {
+      try {
+        const response = await axios.get("/api/payment/packages", {
+          withCredentials: true,
+        });
+        setPackages(response.data?.packages || []);
+      } catch (error) {}
+    };
+    fetchdata();
+  }, []);
+
+  const handlePayment = async () => {
     if (!selectedPackage) {
       toast.error("Please select a package first");
       return;
     }
-
-    switch (paymentMethod) {
-      case "upi":
-        toast.info("Redirecting to PhonePe...");
-        break;
-      case "card":
-        toast.info("Redirecting to Stripe checkout...");
-        break;
-      case "crypto":
-        toast.info("Redirecting to Cryptomus...");
-        break;
-    }
+    try {
+      const response: any = await axios.post(
+        "/api/payment/new_payment",
+        {
+          type: paymentMethod,
+          package: selectedPackage,
+          userId: user._id,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      if (paymentMethod === "upi") {
+        const tokenUrl = response.data?.redirectUrl;
+        window.location.href = tokenUrl;
+      }
+    } catch (error) {}
   };
 
   const renderPriceDisplay = () => {
-    const isCrypto = paymentMethod === 'crypto';
+    const isCrypto = paymentMethod === "crypto";
     const baseAmount = isCrypto ? selectedPriceUSD : selectedPrice;
     const tax = isCrypto ? 0 : calculateTax(selectedPrice);
     const total = isCrypto ? baseAmount : baseAmount + tax;
@@ -67,7 +92,7 @@ const PurchaseNetcoins = () => {
             )}
           </div>
         </div>
-        
+
         {!isCrypto && (
           <div className="flex justify-between items-center text-sm text-muted-foreground">
             <span>GST (18%)</span>
@@ -81,11 +106,7 @@ const PurchaseNetcoins = () => {
           <div className="flex justify-between items-center font-bold">
             <span>Total</span>
             <div className="text-right">
-              {isCrypto ? (
-                <div>${total}</div>
-              ) : (
-                <div>₹{total.toFixed(2)}</div>
-              )}
+              {isCrypto ? <div>${total}</div> : <div>₹{total.toFixed(2)}</div>}
             </div>
           </div>
         </div>
@@ -97,30 +118,36 @@ const PurchaseNetcoins = () => {
     <main className="p-6 flex-1">
       <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-100/50">
         <h2 className="text-3xl font-bold mb-6">Purchase Netcoins</h2>
-        
+
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <RadioGroup 
-              value={selectedPackage?.toString()} 
+            <RadioGroup
+              value={selectedPackage?.toString()}
               onValueChange={(value) => setSelectedPackage(Number(value))}
               className="grid gap-4 md:grid-cols-2"
             >
               {packages.map((pkg) => (
-                <div key={pkg.coins} className="relative">
+                <div key={pkg.id} className="relative">
                   <RadioGroupItem
-                    value={pkg.coins.toString()}
-                    id={`package-${pkg.coins}`}
+                    value={pkg.id.toString()} // Use id instead of coins
+                    id={`package-${pkg.id}`}
                     className="peer sr-only"
                   />
                   <Label
-                    htmlFor={`package-${pkg.coins}`}
-                    className="flex flex-col p-4 border rounded-lg cursor-pointer hover:bg-gray-50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-primary"
+                    htmlFor={`package-${pkg.id}`}
+                    className="flex flex-col p-4 border rounded-lg cursor-pointer hover:bg-gray-50/10 peer-data-[state=checked]:border-primary peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-primary "
                   >
-                    <span className="text-lg font-semibold">{pkg.coins} NC</span>
-                    {paymentMethod === 'crypto' ? (
-                      <span className="text-sm text-muted-foreground">${pkg.priceUSD}</span>
+                    <span className="text-lg font-semibold">
+                      {pkg.coins} NC
+                    </span>
+                    {paymentMethod === "crypto" ? (
+                      <span className="text-sm text-muted-foreground">
+                        ${pkg.priceUSD}
+                      </span>
                     ) : (
-                      <span className="text-sm text-muted-foreground">₹{pkg.priceINR.toFixed(2)}</span>
+                      <span className="text-sm text-muted-foreground">
+                        ₹{pkg.priceINR.toFixed(2)}
+                      </span>
                     )}
                   </Label>
                 </div>
@@ -145,7 +172,9 @@ const PurchaseNetcoins = () => {
                       <Smartphone className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium">PhonePe UPI</p>
-                        <p className="text-sm text-muted-foreground">Pay using UPI in INR</p>
+                        <p className="text-sm text-muted-foreground">
+                          Pay using UPI in INR
+                        </p>
                       </div>
                     </div>
                   </TabsContent>
@@ -154,7 +183,9 @@ const PurchaseNetcoins = () => {
                       <CreditCard className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium">Credit/Debit Card</p>
-                        <p className="text-sm text-muted-foreground">Pay using Stripe in INR</p>
+                        <p className="text-sm text-muted-foreground">
+                          Pay using Stripe in INR
+                        </p>
                       </div>
                     </div>
                   </TabsContent>
@@ -163,7 +194,9 @@ const PurchaseNetcoins = () => {
                       <Bitcoin className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium">Cryptocurrency</p>
-                        <p className="text-sm text-muted-foreground">Pay using Cryptomus in USD</p>
+                        <p className="text-sm text-muted-foreground">
+                          Pay using Cryptomus in USD
+                        </p>
                       </div>
                     </div>
                   </TabsContent>
@@ -173,12 +206,12 @@ const PurchaseNetcoins = () => {
                   {renderPriceDisplay()}
                 </div>
 
-                <Button 
-                  className="w-full mt-4" 
+                <Button
+                  className="w-full mt-4"
                   disabled={selectedPackage === null}
                   onClick={handlePayment}
                 >
-                  {selectedPackage ? `Pay Now` : 'Select a package'}
+                  {selectedPackage ? `Pay Now` : "Select a package"}
                 </Button>
               </CardContent>
             </Card>

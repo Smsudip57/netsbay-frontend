@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
  type UserRole = 'user' | 'admin';
 
  interface UserType {
+  _id: string;
   firstName: string;
   lastName: string;
   email: string;

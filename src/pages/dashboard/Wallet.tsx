@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "@/context/context";
 
 const Wallet = () => {
   const navigate = useNavigate();
   const [redeemCode, setRedeemCode] = useState("");
+  const { user } = useAppContext();
 
   const handleRedeem = () => {
     if (!redeemCode.trim()) {
@@ -64,7 +66,7 @@ const Wallet = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                250.00 NC
+                {user?.balance} NC
               </div>
               <Button 
                 className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl" 
