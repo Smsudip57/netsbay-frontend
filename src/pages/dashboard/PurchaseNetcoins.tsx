@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useAppContext } from "@/context/context";
 import { useNavigate } from "react-router-dom";
+import { loadStripe } from '@stripe/stripe-js';
 
 interface Package {
   id: number;
@@ -23,6 +24,7 @@ const PurchaseNetcoins = () => {
   const [paymentMethod, setPaymentMethod] = useState("upi");
   const { user } = useAppContext();
   const navigate = useNavigate();
+  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
   const calculateTax = (amount: number) => amount * 0.18; // 18% GST
   const calculateTotal = (amount: number, includeTax: boolean) =>
@@ -70,6 +72,10 @@ const PurchaseNetcoins = () => {
       if (paymentMethod === "upi") {
         const tokenUrl = response.data?.redirectUrl;
         window.location.href = tokenUrl;
+      }else if(paymentMethod === "card"){
+        const redirectUrl = response.data?.redirectUrl;
+        window.location.href = redirectUrl;
+        
       }
     } catch (error) {}
   };
