@@ -16,6 +16,7 @@ import EmailVerified from "./pages/EmailVerified";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import Refund from "./pages/Refund";
+import PaymentStatus from "./pages/PaymentStatus";
 import axios from "axios";
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/refund" element={<Refund />} />
+            <Route path="/payment/status" element={<PaymentStatus />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

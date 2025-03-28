@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useAppContext } from "@/context/context";
 import { useNavigate } from "react-router-dom";
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from "@stripe/stripe-js";
 
 interface Package {
   id: number;
@@ -47,7 +47,9 @@ const PurchaseNetcoins = () => {
           withCredentials: true,
         });
         setPackages(response.data?.packages || []);
-      } catch (error) {}
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "Something went wrong!");
+      }
     };
     fetchdata();
   }, []);
@@ -72,12 +74,15 @@ const PurchaseNetcoins = () => {
       if (paymentMethod === "upi") {
         const tokenUrl = response.data?.redirectUrl;
         window.location.href = tokenUrl;
-      }else if(paymentMethod === "card"){
+      } else if (paymentMethod === "card") {
         const redirectUrl = response.data?.redirectUrl;
         window.location.href = redirectUrl;
-        
+      } else if (paymentMethod === "crypto") {
+        window.location.href = response.data?.url;
       }
-    } catch (error) {}
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong!");
+    }
   };
 
   const renderPriceDisplay = () => {
