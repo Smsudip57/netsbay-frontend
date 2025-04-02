@@ -80,8 +80,6 @@ export const useAppContext = () => {
   if (!context) {
     throw new Error("useAppContext must be used within an AppProvider");
   }
-
-  // ✅ Fix: Move `useNavigate()` inside the function
   const navigate = useNavigate();
 
   const logout = async () => {
