@@ -8,7 +8,8 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyDeORWehlO9PWmM1ijeru75n8mbdT24cDg",
-  authDomain: "netbay-c3166.firebaseapp.com",
+  authDomain: "https://dev.netbay.in/",
+  // authDomain: "netbay-c3166.firebaseapp.com",
   projectId: "netbay-c3166",
   storageBucket: "netbay-c3166.firebasestorage.app",
   messagingSenderId: "732856487939",
