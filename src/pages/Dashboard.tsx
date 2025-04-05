@@ -33,6 +33,7 @@ import {
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import moment from "moment";
 
 const mockServices = [
   { id: 1, name: "Ubuntu Server", status: "online", type: "Linux" },
@@ -47,22 +48,9 @@ const mockTransactions = [
 ];
 
 const DashboardHome = () => {
-  const [services, setServices] = useState<any>();
-  const { user } = useAppContext();
+  const { user, payment, transactions, getDate, services } = useAppContext();
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const res = await axios.get("/api/user/services", {
-          withCredentials: true,
-        });
-        if (res?.data) {
-          setServices(res?.data);
-        }
-      } catch (error) {}
-    };
-    fetchServices();
-  }, []);
+  
 
   return (
     <main className="p-6 flex-1">
@@ -101,7 +89,12 @@ const DashboardHome = () => {
               title="Available Balance"
               value={`${user?.balance.toFixed(2)} NC`}
               icon={<WalletIcon className="h-4 w-4" />}
-              description="Last topped up 2 days ago"
+              description={`Last topped up ${(() => {
+                const data = payment?.filter(
+                  (p: any) => p?.status === "Success"
+                )?.[0]?.createdAt;
+                return data ? moment(data).fromNow() : "never";
+              })()}`}
               variant="default"
             />
             <StatsCard
@@ -144,7 +137,13 @@ const DashboardHome = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+            <div
+                className="space-y-4 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent "
+                style={{
+                  scrollbarWidth: "thin",
+                  msOverflowStyle: "none",
+                }}
+              >
                 {services
                   ?.filter((service: any) => {
                     const expiryTimestamp =
@@ -154,7 +153,7 @@ const DashboardHome = () => {
 
                     return expiryTimestamp > Date.now();
                   })
-                  ?.slice(0, 3)
+                  ?.slice(0, 10)
                   ?.map((service: any) => (
                     <div
                       key={service.id}
@@ -200,29 +199,38 @@ const DashboardHome = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockTransactions.map((transaction) => (
+              <div
+                className="space-y-4 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scrollbar-thumb-red-500/50"
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#3676E0 transparent",
+                  msOverflowStyle: "none",
+                }}
+              >
+                {transactions?.slice(0, 10)?.map((transaction: any) => (
                   <div
-                    key={transaction.id}
+                    key={transaction?.transactionId}
                     className="flex items-center justify-between p-3 bg-accent/50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <Receipt className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="font-medium">{transaction.type}</p>
+                        <p className="font-medium">
+                          {transaction?.description}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {transaction.date}
+                          {getDate(transaction?.createdAt)}
                         </p>
                       </div>
                     </div>
                     <span
                       className={
-                        transaction.amount.startsWith("-")
+                        transaction?.amount < 0
                           ? "text-red-500"
                           : "text-green-500"
                       }
                     >
-                      {transaction.amount}
+                      {transaction?.amount}
                     </span>
                   </div>
                 ))}

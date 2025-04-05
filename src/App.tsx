@@ -17,8 +17,10 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import Refund from "./pages/Refund";
 import PaymentStatus from "./pages/PaymentStatus";
+import Test from "./pages/dashboard/test";
 import axios from "axios";
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -41,6 +43,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/refund" element={<Refund />} />
             <Route path="/payment/status" element={<PaymentStatus />} />
+            <Route path="/test" element={<Test />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

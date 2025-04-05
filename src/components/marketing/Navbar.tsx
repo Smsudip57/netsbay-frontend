@@ -130,7 +130,7 @@ export function MarketingNavbar() {
                   >
                     <User className="mr-2 h-4 w-4" />
                     <span>
-                      {user?.role === "admin" ? "Admin" : ""}Dashboard
+                      {user?.role === "admin" ? "Admin " : ""}Dashboard
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50">

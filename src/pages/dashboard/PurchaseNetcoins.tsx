@@ -173,9 +173,9 @@ const PurchaseNetcoins = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <Tabs defaultValue="upi" onValueChange={setPaymentMethod}>
-                  <TabsList className="grid grid-cols-3 w-full">
+                  <TabsList className="grid grid-cols-2 w-full">
                     <TabsTrigger value="upi">UPI</TabsTrigger>
-                    <TabsTrigger value="card">Card</TabsTrigger>
+                    {/* <TabsTrigger value="card">Card</TabsTrigger> */}
                     <TabsTrigger value="crypto">Crypto</TabsTrigger>
                   </TabsList>
                   <TabsContent value="upi" className="space-y-4">

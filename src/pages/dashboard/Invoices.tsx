@@ -1,4 +1,5 @@
-import { FileText, Download } from "lucide-react";
+import React, { useEffect } from "react";
+import { FileText, Download, QrCode } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -9,29 +10,72 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useAppContext } from "@/context/context";
 
 const Invoices = () => {
-  // Sample invoice data for NetCoin purchases
+  const { transactions, setTransactions, payment, setPayment, generatePDF } =
+    useAppContext();
   const invoices = [
     {
       id: "INV-001",
       date: "2024-02-20",
       netcoins: 200,
-      subtotal: 200.00,
-      gst: 36.00, // 18% GST
-      total: 236.00,
+      subtotal: 200.0,
+      gst: 36.0, // 18% GST
+      total: 236.0,
       status: "Paid",
     },
     {
       id: "INV-002",
       date: "2024-02-15",
       netcoins: 500,
-      subtotal: 500.00,
-      gst: 90.00, // 18% GST
-      total: 590.00,
+      subtotal: 500.0,
+      gst: 90.0, // 18% GST
+      total: 590.0,
       status: "Paid",
     },
   ];
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    const FetchData = async () => {
+      try {
+        const response = await axios.get("/api/user/transactions", {
+          withCredentials: true,
+          signal: signal,
+        });
+        if (response?.data) {
+          setTransactions(response.data);
+        }
+      } catch (error) {
+        console.log("error getting info");
+      }
+      try {
+        const response = await axios.get("/api/user/paymentHistory", {
+          withCredentials: true,
+          signal: signal,
+        });
+        if (response?.data) {
+          setPayment(response.data);
+        }
+      } catch (error) {
+        console.log("error getting info");
+      }
+    };
+    if (transactions.length === 0 || payment.length === 0) {
+      FetchData();
+    }
+  }, []);
+
+  const getDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <main className="p-6 flex-1">
@@ -57,24 +101,70 @@ const Invoices = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.date}</TableCell>
-                    <TableCell>{invoice.netcoins} NC</TableCell>
-                    <TableCell>₹{invoice.subtotal.toFixed(2)}</TableCell>
-                    <TableCell>₹{invoice.gst.toFixed(2)}</TableCell>
-                    <TableCell className="font-medium">₹{invoice.total.toFixed(2)}</TableCell>
+                {payment?.map((invoice: any) => (
+                  <TableRow key={invoice?.invoiceId}>
+                    <TableCell className="font-medium">
+                      {invoice?.paymentMethod === "Phonepe"
+                        ? invoice?.invoiceId
+                        : "No Invoice For Crypto"}
+                    </TableCell>
+                    <TableCell>{getDate(invoice?.createdAt)}</TableCell>
+                    <TableCell>{invoice?.coinAmout} NC</TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">
-                        {invoice.status}
-                      </span>
+                      {invoice?.paymentType === "Phonepe" ? "₹" : "$"}
+                      {invoice?.paymentType === "Phonepe"
+                        ? (invoice?.Price / 1.18)?.toFixed(2)
+                        : invoice?.Price}
+                    </TableCell>
+                    <TableCell>
+                      {invoice?.paymentType === "Phonepe" ? "₹" : ""}
+                      {invoice?.paymentType === "Phonepe"
+                        ? (invoice?.Price - invoice?.Price / 1.18)?.toFixed(2)
+                        : "none"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {invoice?.paymentType === "Phonepe" ? "₹" : "$"}
+                      {invoice?.Price}
+                    </TableCell>
+                    <TableCell>
+                      {invoice?.status === "Pending" ? (
+                        <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs">
+                          {invoice?.status}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">
+                          {invoice?.status}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download</span>
-                      </Button>
+                      {invoice?.paymentType === "Phonepe" ? (
+                        // {invoice?.paymentType === "Cryptomous" ? (
+                        invoice?.status === "Pending" ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            style={{ padding: "5px" }}
+                            title="UPI Only"
+                          >
+                            <QrCode className="h-4 w-4" />
+                            <span className="text-xs">Pay</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => generatePDF(invoice)}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download</span>
+                          </Button>
+                        )
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          No Invoice
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

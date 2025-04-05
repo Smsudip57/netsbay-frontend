@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { ServiceListView } from "@/components/dashboard/service/ServiceListView";
 import { ServiceCardView } from "@/components/dashboard/service/ServiceCardView";
@@ -7,6 +6,7 @@ import { ViewToggle } from "@/components/dashboard/service/ViewToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, X } from "lucide-react";
 import axios from "axios";
+import { useAppContext } from "@/context/context";
 
 // Mock data for demonstration
 
@@ -30,34 +30,34 @@ interface ServiceVM {
   createdAt?: Date;
 }
 
- type ServiceStatus = 'unsold' | 'pending' | 'active' | 'expired' | 'terminated';
- type TerminationReason = 'expired' | 'unpaid' | 'banned' | null;
+type ServiceStatus = "unsold" | "pending" | "active" | "expired" | "terminated";
+type TerminationReason = "expired" | "unpaid" | "banned" | null;
 
- interface IService {
+interface IService {
   _id?: string;
-  relatedUser: string ;
+  relatedUser: string;
   relatedProduct: ServiceVM;
-  
+
   // Service details
   serviceId: string;
   serviceNickname?: string;
-  
+
   // Service type
   vmID?: number;
   purchaseDate?: Date;
   purchedFrom?: string;
   EXTRLhash?: string;
-  
+
   // Credentials
   username?: string;
   password?: string;
   ipAddress?: string;
-  
+
   // Status
   status: ServiceStatus;
   terminationDate: Date | null;
   terminationReason: TerminationReason;
-  
+
   createdAt: Date;
   expiryDate?: Date;
 }
@@ -67,41 +67,41 @@ const Services = () => {
   const [ipSetFilter, setIpSetFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [viewType, setViewType] = useState<"list" | "cards">("list");
-  const [ipSetList , setIpSetList] = useState<string[]>([]);
-  const [typeList , setTypeList] = useState<string[]>([]);
-
+  const [ipSetList, setIpSetList] = useState<string[]>([]);
+  const [typeList, setTypeList] = useState<string[]>([]);
+  const { services } = useAppContext();
 
   const filteredActiveServices = mockServices.filter((service) => {
     const isActive = service?.status === "active";
-    const matchesType = typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
-    const matchesIpSet = ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
+    const matchesType =
+      typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
+    const matchesIpSet =
+      ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
     return isActive && matchesType && matchesIpSet;
   });
 
   const filteredExpiredServices = mockServices.filter((service) => {
     const isExpired = service?.status === "expired";
-    const matchesType = typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
-    const matchesIpSet = ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
+    const matchesType =
+      typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
+    const matchesIpSet =
+      ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
     return isExpired && matchesType && matchesIpSet;
   });
 
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const res = await axios.get("/api/user/services", { withCredentials: true });
-        if(res?.data){
-          setMockServices(res?.data);
-          const ipSetList = res?.data.map((service: IService) => service.relatedProduct.ipSet);
-          const typeList = res?.data.map((service: IService) => service.relatedProduct.Os);
-          setIpSetList([...new Set(ipSetList as string[])]);
-          setTypeList([...new Set(typeList as string[])]);
-        }
-      } catch (error) {
-        
-      }
+    if (services?.length > 0) {
+      setMockServices(services);
+      const ipSetList = services.map(
+        (service: IService) => service.relatedProduct.ipSet
+      );
+      const typeList = services.map(
+        (service: IService) => service.relatedProduct.Os
+      );
+      setIpSetList([...new Set(ipSetList as string[])]);
+      setTypeList([...new Set(typeList as string[])]);
     }
-    fetchServices();
-  }, []);
+  }, [services]);
 
   return (
     <main className="p-6 flex-1">
@@ -134,17 +134,19 @@ const Services = () => {
           </TabsList>
 
           <TabsContent value="active" className="space-y-4">
-            {viewType === "list" 
-              ? <ServiceListView services={filteredActiveServices} />
-              : <ServiceCardView services={filteredActiveServices} />
-            }
+            {viewType === "list" ? (
+              <ServiceListView services={filteredActiveServices} />
+            ) : (
+              <ServiceCardView services={filteredActiveServices} />
+            )}
           </TabsContent>
 
           <TabsContent value="expired" className="space-y-4">
-            {viewType === "list"
-              ? <ServiceListView services={filteredExpiredServices} />
-              : <ServiceCardView services={filteredExpiredServices} />
-            }
+            {viewType === "list" ? (
+              <ServiceListView services={filteredExpiredServices} />
+            ) : (
+              <ServiceCardView services={filteredExpiredServices} />
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -153,4 +155,3 @@ const Services = () => {
 };
 
 export default Services;
-
