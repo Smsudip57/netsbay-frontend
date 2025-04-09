@@ -72,7 +72,7 @@ const Services = () => {
   const { services } = useAppContext();
 
   const filteredActiveServices = mockServices.filter((service) => {
-    const isActive = service?.status === "active";
+    const isActive = (service?.status === "active" || service?.status === "pending") ;
     const matchesType =
       typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
     const matchesIpSet =

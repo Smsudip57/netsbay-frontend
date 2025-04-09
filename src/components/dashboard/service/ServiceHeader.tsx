@@ -1,5 +1,13 @@
-
-import { AppWindow, Terminal, Edit2, Activity, Check, Copy, Hash, Calendar } from "lucide-react";
+import {
+  AppWindow,
+  Terminal,
+  Edit2,
+  Activity,
+  Check,
+  Copy,
+  Hash,
+  Calendar,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -12,14 +20,29 @@ interface ServiceHeaderProps {
   type: string;
   status: string;
   date: Date;
+  location?: string;
+  setExpiryDate?: (date: Date) => void;
+  isAdmin?: boolean;
+  adminPath?: boolean;
 }
 
-export const ServiceHeader = ({ nickname: initialNickname, id, type, status, date }: ServiceHeaderProps) => {
+export const ServiceHeader = ({
+  nickname: initialNickname,
+  id,
+  type,
+  status,
+  date: comingdate,
+  location,
+  setExpiryDate,
+  isAdmin,
+  adminPath,
+}: ServiceHeaderProps) => {
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [nickname, setNickname] = useState(initialNickname);
   const [copied, setCopied] = useState(false);
-  const isWindows = type.toLowerCase().includes('windows');
-  const isRunning = status === 'running';
+  const isWindows = type.toLowerCase().includes("windows");
+  const isRunning = status === "running";
+  const [date, setDate] = useState(comingdate);
 
   const getServiceIcon = () => {
     if (isWindows) return <AppWindow className="h-4 w-4 text-blue-400" />;
@@ -49,7 +72,7 @@ export const ServiceHeader = ({ nickname: initialNickname, id, type, status, dat
       month: "short",
       year: "numeric",
     });
-  }
+  };
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -89,23 +112,17 @@ export const ServiceHeader = ({ nickname: initialNickname, id, type, status, dat
                 </Button>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">
-              {type} Server
-            </p>
+            <p className="text-sm text-muted-foreground">{type} Server</p>
           </div>
         </div>
 
-        <div 
+        <div
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors"
           onClick={copyToClipboard}
         >
           <Hash className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">{id}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-4 w-4 p-0"
-          >
+          <Button variant="ghost" size="icon" className="h-4 w-4 p-0">
             {copied ? (
               <Check className="h-3 w-3 text-green-500" />
             ) : (
@@ -114,9 +131,39 @@ export const ServiceHeader = ({ nickname: initialNickname, id, type, status, dat
           </Button>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-background/50">
-        <Calendar className="h-4 w-4 text-muted-foreground" />
+        {isAdmin && adminPath && !location.includes("/requests") ? (
+          <div className="relative">
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => {
+                const datePicker = document.getElementById(
+                  "date-picker"
+                ) as HTMLInputElement;
+                (datePicker as any).showPicker?.();
+              }}
+            >
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Change date</span>
+            </div>
+            <input
+              id="date-picker"
+              type="date"
+              className="absolute opacity-0 w-0 h-0"
+              value={date ? new Date(date).toISOString().split("T")[0] : ""}
+              onChange={(e) => {
+                const newDate = new Date(e.target.value);
+                if(isNaN(newDate.getTime())) return;
+                setDate(newDate);
+                setExpiryDate?.(newDate);
+              }}
+            />
+          </div>
+        ) : (
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+        )}
+
         <span className="text-sm font-medium">Expires: {getDate(date)}</span>
       </div>
     </div>

@@ -19,6 +19,7 @@ import AdminConstants from "./AdminConstants";
 import Coupons from "./Coupons";
 import AddCoupon from "./AddCoupon";
 import AddCoinCoupon from "./AddCoinCoupon";
+import ServiceDetails from "../dashboard/ServiceDetails";
 
 const DashboardHome = () => {
   return (
@@ -57,6 +58,7 @@ const AdminDashboard = () => {
             <Route index element={<DashboardHome />} />
             <Route path="add-service" element={<AddService />} />
             <Route path="services" element={<AdminServices />} />
+            <Route path="services/:id" element={<ServiceDetails />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/add" element={<AddProduct />} />
             <Route path="products/edit/:id" element={<EditProduct />} />
@@ -65,6 +67,7 @@ const AdminDashboard = () => {
             <Route path="users/:id/invoices" element={<UserInvoices />} />
             <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="requests" element={<AdminRequests />} />
+            <Route path="requests/:id" element={<ServiceDetails />} />
             <Route path="invoices" element={<AdminInvoices />} />
             <Route path="coupons" element={<Coupons />} />
             <Route path="coupons/add" element={<AddCoupon />} />

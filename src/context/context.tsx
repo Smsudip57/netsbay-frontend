@@ -10,6 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import { io } from "socket.io-client";
 
 interface Address {
   street: string;
@@ -61,6 +62,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [payment, setPayment] = useState<any>([]);
   const [services, setServices] = useState<any>([]);
+  const [requests, setRequests] = useState();
+  const [showRebuildDialog, setShowRebuildDialog] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [handleRebuildRequest, setHandleRebuildRequest] = useState(
+    () => () => {}
+  );
+  const [dialogInfo, setDialogInfo] = useState({
+    title: "",
+    message: "",
+    onclick: "",
+  });
+
+  const socket = io(import.meta.env.VITE_BACKEND_URL, {
+    withCredentials: true,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,10 +125,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.log("error getting info");
       }
+      try {
+        const notificationResponse = await axios.get(
+          "/api/user/notifications",
+          {
+            withCredentials: true,
+            signal: signal,
+          }
+        );
+        if (notificationResponse?.data) {
+          setNotifications(notificationResponse.data);
+        }
+      } catch (error) {
+        console.log("error getting info");
+      }
     };
     if (transactions.length === 0 || payment.length === 0) {
       FetchData();
     }
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -132,6 +165,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       fetchServices();
     }
   }, []);
+
+  useEffect(() => {
+    if (!user || !user._id || !socket) return;
+    socket.emit("joinUserRoom", user._id);
+
+    const handleNotification = (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+    };
+
+    socket.on("notification", handleNotification);
+    return () => {
+      socket.off("notification", handleNotification);
+    };
+  }, [user, socket]);
 
   const getDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-GB", {
@@ -346,6 +393,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         generatePDF,
         services,
         setServices,
+        requests,
+        setRequests,
+        showRebuildDialog,
+        setShowRebuildDialog,
+        handleRebuildRequest,
+        setHandleRebuildRequest,
+        dialogInfo,
+        setDialogInfo,
+        notifications,
+        setNotifications,
       }}
     >
       {children}

@@ -17,6 +17,9 @@ interface ServiceDetailsCardProps {
 
 export const ServiceDetailsCard = ({ details, status }: ServiceDetailsCardProps) => {
   const isRunning = status === 'running';
+ 
+  
+  
   
   const detailItems = [
     { 

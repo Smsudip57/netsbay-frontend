@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Package, Shield, Monitor, Network, WalletIcon, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import {
+  Package,
+  Shield,
+  Monitor,
+  Network,
+  WalletIcon,
+  CheckCircle2,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAppContext } from "@/context/context";
@@ -21,7 +29,6 @@ type ServiceType =
   | "External RDP"
   | "Internal Linux"
   | "External Linux";
-
 
 interface LocationState {
   service: {
@@ -47,14 +54,19 @@ const ProductPurchase = () => {
   const { user, setUser } = useAppContext();
   const [quantity, setQuantity] = useState("1");
   const [couponCode, setCouponCode] = useState("");
-  const [totalPrice, setTotalPrice] = useState( Number(quantity) * service?.price);
+  const [totalPrice, setTotalPrice] = useState(
+    Number(quantity) * service?.price
+  );
   const [appliedCoupon, setAppliedCoupon] = useState([]);
 
   if (!service) {
     return (
       <div className="p-6">
         <p>No product selected. Please go back and select a product.</p>
-        <Button onClick={() => navigate("/dashboard/buy-service")} className="mt-4">
+        <Button
+          onClick={() => navigate("/dashboard/buy-service")}
+          className="mt-4"
+        >
           Go Back
         </Button>
       </div>
@@ -62,42 +74,51 @@ const ProductPurchase = () => {
   }
 
   const getIcon = () => {
-    return service.serviceType.includes("RDP")?
-     <Monitor className="h-5 w-5" />:
-     <Network className="h-5 w-5" />;
+    return service.serviceType.includes("RDP") ? (
+      <Monitor className="h-5 w-5" />
+    ) : (
+      <Network className="h-5 w-5" />
+    );
   };
-   
+
   const handlePurchase = async () => {
-    if( user?.balance < totalPrice){
+    if (user?.balance < totalPrice) {
       toast.error("Insufficient balance. Please add funds to your wallet.");
       return;
     }
     try {
-      const res = await axios.get("/api/user/purchase_service", 
-      {
-        params: { productId: service.productId, quantity: Number(quantity), token: appliedCoupon[0] || "" },
+      const res = await axios.get("/api/user/purchase_service", {
+        params: {
+          productId: service.productId,
+          quantity: Number(quantity),
+          token: appliedCoupon[0] || "",
+        },
         withCredentials: true,
       });
       if (res?.data) {
         setUser((prev) => ({ ...prev, balance: prev.balance - totalPrice }));
         toast.success(res?.data?.message);
         navigate("/dashboard/services");
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to initiate purchase.");
+      toast.error(
+        error?.response?.data?.message || "Failed to initiate purchase."
+      );
     }
     // toast.success("Purchase initiated! Redirecting to payment...");
     // Here you would typically handle the purchase logic
   };
 
-  const handleApplyCoupon = async() => {
-    if(appliedCoupon.length > 0){
+  const handleApplyCoupon = async () => {
+    if (appliedCoupon.length > 0) {
       toast.error("Coupon already applied.");
       return;
     }
     try {
-      const res = await axios.get("/api/user/apply_coupon",
-      {
+      const res = await axios.get("/api/user/apply_coupon", {
         params: { token: couponCode },
         withCredentials: true,
       });
@@ -108,22 +129,24 @@ const ProductPurchase = () => {
             ...prev,
             price: service.price - coupon.discountAmmount,
           }));
-          setTotalPrice(Number(quantity) * (service.price - coupon.discountAmmount));
-        }else if(coupon?.discountParcent){
+          setTotalPrice(
+            Number(quantity) * (service.price - coupon.discountAmmount)
+          );
+        } else if (coupon?.discountParcent) {
           setService((prev) => ({
             ...prev,
-            price: service.price - (service.price * (coupon.discountParcent / 100)),
+            price:
+              service.price - service.price * (coupon.discountParcent / 100),
           }));
-          setTotalPrice(Number(quantity) * (service.price - (service.price * (coupon.discountParcent / 100))));
+          setTotalPrice(
+            Number(quantity) *
+              (service.price - service.price * (coupon.discountParcent / 100))
+          );
         }
         setAppliedCoupon([...appliedCoupon, couponCode]);
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
-
-  
 
   return (
     <main className="p-6 flex-1">
@@ -141,7 +164,9 @@ const ProductPurchase = () => {
           </div>
           <div className="flex items-center gap-2 bg-primary/5 px-4 py-2 rounded-lg">
             <WalletIcon className="h-4 w-4 text-primary" />
-            <span className="font-medium">Balance: {user?.balance || 0} NC</span>
+            <span className="font-medium">
+              Balance: {user?.balance || 0} NC
+            </span>
           </div>
         </div>
 
@@ -186,7 +211,9 @@ const ProductPurchase = () => {
 
             {/* Features Card */}
             <div className="rounded-xl glass-card p-6">
-              <h3 className="text-xl font-semibold text-cyan-400 mb-4">Features</h3>
+              <h3 className="text-xl font-semibold text-cyan-400 mb-4">
+                Features
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-cyan-400" />
@@ -208,7 +235,9 @@ const ProductPurchase = () => {
 
               <div className="mt-6 flex items-center gap-2 bg-cyan-500/10 text-cyan-400 p-4 rounded-lg">
                 <AlertTriangle className="h-5 w-5" />
-                <p className="text-sm">Your data and transactions are secure and encrypted.</p>
+                <p className="text-sm">
+                  Your data and transactions are secure and encrypted.
+                </p>
               </div>
             </div>
           </div>
@@ -220,12 +249,15 @@ const ProductPurchase = () => {
                 <Label htmlFor="quantity">Quantity</Label>
                 <Select
                   value={quantity}
-                  onValueChange={(e)=>{
+                  onValueChange={(e) => {
                     setQuantity(e);
                     setTotalPrice(Number(e) * service.price);
                   }}
                 >
-                  <SelectTrigger id="quantity" className="bg-white/5 dark:bg-black/20">
+                  <SelectTrigger
+                    id="quantity"
+                    className="bg-white/5 dark:bg-black/20"
+                  >
                     <SelectValue placeholder="Select quantity" />
                   </SelectTrigger>
                   <SelectContent>
@@ -248,49 +280,80 @@ const ProductPurchase = () => {
                     placeholder="Enter coupon code"
                     className="bg-white/5 dark:bg-black/20"
                   />
-                  <Button 
+                  <Button
                     onClick={handleApplyCoupon}
                     className="bg-cyan-500 hover:bg-cyan-600 text-white"
                   >
                     Apply
                   </Button>
                 </div>
-                
-                <p className={appliedCoupon.length === 0 ? "text-sm text-gray-400" : "w-max text-xs flex gap-1 items-center p-1 px-3 ml-1 rounded-full bg-primary/10"}>{
-                  appliedCoupon.length > 0 ?
-                  `${appliedCoupon[0]}`:
-                  "*No discount will actually be applied."
-                  } {appliedCoupon.length > 0 && <X style={{width: "1em", height: "1em", cursor: "pointer"}} onClick={()=>{
-                    setAppliedCoupon([]);
-                  }}/>}</p>
+
+                <p
+                  className={
+                    appliedCoupon.length === 0
+                      ? "text-sm text-gray-400"
+                      : "w-max text-xs flex gap-1 items-center p-1 px-3 ml-1 rounded-full bg-primary/10"
+                  }
+                >
+                  {appliedCoupon.length > 0
+                    ? `${appliedCoupon[0]}`
+                    : "*No discount will actually be applied."}{" "}
+                  {appliedCoupon.length > 0 && (
+                    <X
+                      style={{ width: "1em", height: "1em", cursor: "pointer" }}
+                      onClick={() => {
+                        setAppliedCoupon([]);
+                      }}
+                    />
+                  )}
+                </p>
               </div>
 
               <div className="pt-6 border-t border-white/10">
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-cyan-400">Order Summary</h4>
-                  
+                  <h4 className="text-lg font-semibold text-cyan-400">
+                    Order Summary
+                  </h4>
+
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm text-gray-400">
-                      <span>Plan Price ({quantity} {Number(quantity) === 1 ? 'unit' : 'units'})</span>
+                      <span>
+                        Plan Price ({quantity}{" "}
+                        {Number(quantity) === 1 ? "unit" : "units"})
+                      </span>
                       <span>{totalPrice.toFixed(2)} NC</span>
                     </div>
                     <div className="flex justify-between items-center text-sm text-gray-400">
                       <span>Discount</span>
-                      <span>{(location?.state?.service?.price * Number(quantity) - totalPrice).toFixed(2)} NC</span>
+                      <span>
+                        {(
+                          location?.state?.service?.price * Number(quantity) -
+                          totalPrice
+                        ).toFixed(2)}{" "}
+                        NC
+                      </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-4 border-t border-white/10">
                     <span className="font-medium">Total</span>
-                    <span className="text-xl font-bold text-cyan-400">{totalPrice.toFixed(2)} NC</span>
+                    <span className="text-xl font-bold text-cyan-400">
+                      {totalPrice.toFixed(2)} NC
+                    </span>
                   </div>
 
-                  <Button 
-                    onClick={handlePurchase} 
-                    className={`w-full  text-white ${user?.balance < totalPrice ? "cursor-not-allowed bg-red-500" : "bg-cyan-500 hover:bg-cyan-600"}`}
+                  <Button
+                    onClick={handlePurchase}
+                    className={`w-full  text-white ${
+                      user?.balance < totalPrice
+                        ? "cursor-not-allowed bg-red-500"
+                        : "bg-cyan-500 hover:bg-cyan-600"
+                    }`}
                     disabled={user?.balance < totalPrice}
                   >
-                    {user?.balance < totalPrice ? "Insufficient Balance" : "Proceed & Purchase"}
+                    {user?.balance < totalPrice
+                      ? "Insufficient Balance"
+                      : "Proceed & Purchase"}
                   </Button>
                 </div>
               </div>

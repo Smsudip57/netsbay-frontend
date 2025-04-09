@@ -30,61 +30,18 @@ import {
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-
-// Mock data for demonstration - admin version includes more details
-const mockServices = [
-  {
-    id: 1,
-    name: "VPS Server #1",
-    type: "Ubuntu",
-    status: "online",
-    ip: "192.168.1.1",
-    expiryDate: "2024-12-31",
-    userId: "user123",
-    userEmail: "user1@example.com",
-    specs: {
-      cpu: "2 vCPU",
-      ram: "4 GB",
-      storage: "50 GB",
-    },
-  },
-  {
-    id: 2,
-    name: "VPS Server #2",
-    type: "CentOS",
-    status: "stopped",
-    ip: "192.168.1.2",
-    expiryDate: "2024-12-31",
-    userId: "user456",
-    userEmail: "user2@example.com",
-    specs: {
-      cpu: "4 vCPU",
-      ram: "8 GB",
-      storage: "100 GB",
-    },
-  },
-  {
-    id: 3,
-    name: "VPS Server #3",
-    type: "Windows",
-    status: "expired",
-    ip: "192.168.1.3",
-    expiryDate: "2024-06-30",
-    userId: "user789",
-    userEmail: "user3@example.com",
-    specs: {
-      cpu: "2 vCPU",
-      ram: "4 GB",
-      storage: "80 GB",
-    },
-  },
-];
+import { useNavigate } from "react-router-dom";
+import moment from "moment";
+import { useAppContext } from "@/context/context";
 
 const AdminServices = () => {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [viewType, setViewType] = useState<"list" | "cards">("list");
   const [mockServices, setMockServices] = useState<any>([]);
+  const { setShowRebuildDialog, setHandleRebuildRequest, setDialogInfo } =
+    useAppContext();
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "online":
@@ -111,7 +68,7 @@ const AdminServices = () => {
 
   const getExpiryDate = (purchaseDate) => {
     const expiryDate = new Date(purchaseDate);
-    expiryDate.setDate(expiryDate.getDate() + 30); // Add 30 days
+    if (isNaN(expiryDate.getTime())) return "No expiry date set";
 
     return expiryDate.toLocaleString("en-GB", {
       day: "numeric",
@@ -121,6 +78,16 @@ const AdminServices = () => {
       minute: "numeric",
       hour12: true,
     });
+  };
+
+  const handleDeleteConfirmation = (serviceId: string) => {
+    setShowRebuildDialog(true);
+    setDialogInfo({
+      title: "Delete Service",
+      message: "delete this service",
+      onclick: "Delete",
+    });
+    setHandleRebuildRequest(() =>()=> handleDeleteService(serviceId))
   };
 
   const handleDeleteService = async (serviceId: string) => {
@@ -188,12 +155,9 @@ const AdminServices = () => {
               </div>
             </TableCell>
             <TableCell>
-              <Link
-                to={`/admin/services/${service?.serviceId}`}
-                className="hover:underline"
-              >
+              <div>
                 {service?.serviceNickname ? service?.serviceNickname : "unset"}
-              </Link>
+              </div>
             </TableCell>
             <TableCell>{service?.relatedProduct?.serviceType}</TableCell>
             <TableCell>
@@ -206,17 +170,27 @@ const AdminServices = () => {
                 <div className="text-muted-foreground">{service.userId}</div>
               </div>
             </TableCell>
-            <TableCell>{getExpiryDate(service?.purchaseDate)}</TableCell>
+            <TableCell>
+              {new Date(service.expiryDate) < new Date()
+                ? `Expired ${moment(service.expiryDate).fromNow()}`
+                : getExpiryDate(service?.expiryDate)}
+            </TableCell>
             <TableCell>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/admin/services/${service?.serviceId}`)
+                  }
+                >
                   Edit
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className="text-destructive"
-                  onClick={() => handleDeleteService(service?.serviceId)}
+                  onClick={() => handleDeleteConfirmation(service?.serviceId)}
                 >
                   Delete
                 </Button>
@@ -270,23 +244,33 @@ const AdminServices = () => {
                     : "not assigned"}
                 </div>
                 <div className="text-muted-foreground">
-                  ID: {service.userId}
+                  ID: {service?.serviceId}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  {getExpiryDate(service?.purchaseDate)}
+                  {new Date(service.expiryDate) < new Date()
+                    ? `Expired ${moment(service.expiryDate).fromNow()}`
+                    : getExpiryDate(service?.expiryDate)}
                 </span>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() =>
+                    navigate(`/admin/services/${service?.serviceId}`)
+                  }
+                >
                   Edit
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className="flex-1 text-destructive"
+                  onClick={() => handleDeleteConfirmation(service?.serviceId)}
                 >
                   Delete
                 </Button>
@@ -328,8 +312,10 @@ const AdminServices = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                  <SelectItem value="stopped">Stopped</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="terminated">Terminated</SelectItem>
+                  <SelectItem value="unsold">Unsold</SelectItem>
                   <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
@@ -340,9 +326,10 @@ const AdminServices = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="Ubuntu">Ubuntu</SelectItem>
-                <SelectItem value="CentOS">CentOS</SelectItem>
-                <SelectItem value="Windows">Windows</SelectItem>
+                <SelectItem value="Internal RDP">Internal RDP</SelectItem>
+                <SelectItem value="External RDP">External RDP</SelectItem>
+                <SelectItem value="Internal Linux">Internal Linux</SelectItem>
+                <SelectItem value="External Linux">External Linux</SelectItem>
               </SelectContent>
             </Select>
           </div>
