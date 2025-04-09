@@ -28,7 +28,8 @@ const EditProduct = () => {
     storage: "",
     Stock: true,
     Os: "",
-    price: "", // Price in NC
+    price: "",
+    maxPendingService: 0,
   });
 
   useEffect(() => {
@@ -42,21 +43,24 @@ const EditProduct = () => {
           setFormData(res?.data);
         }
       } catch (error) {
-
+        console.log(error);
       }
     };
 
     fetchData();
   }, [id]);
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (
+    field: string,
+    value: string | boolean | number
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -76,8 +80,8 @@ const EditProduct = () => {
     try {
       const res = await axios.post("/api/admin/update_product", formData, {
         withCredentials: true,
-      })
-      if(res?.data) {
+      });
+      if (res?.data) {
         toast.success("Product updated successfully");
         navigate("/admin/products");
       }
@@ -101,10 +105,13 @@ const EditProduct = () => {
             <CardTitle>Product Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) =>{
-              e.preventDefault();
-              handleSubmit(e);
-            }} className="space-y-6">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(e);
+              }}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="productId">Product ID</Label>
@@ -158,7 +165,12 @@ const EditProduct = () => {
                       <SelectValue placeholder="Select Network Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {["Internal RDP","External RDP","Internal Linux","External Linux"].map((type) => (
+                      {[
+                        "Internal RDP",
+                        "External RDP",
+                        "Internal Linux",
+                        "External Linux",
+                      ].map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>
@@ -206,6 +218,31 @@ const EditProduct = () => {
                     type="text"
                     value={formData.Os}
                     onChange={(e) => handleInputChange("Os", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maxPendingService">
+                    Maximum Pending Service
+                  </Label>
+                  <Input
+                    id="maxPendingService"
+                    type="number"
+                    value={formData.maxPendingService}
+                    onChange={(e) => {
+                      const value = Number(e.target.value); // Convert to number
+                      if (value < 0) {
+                        handleInputChange("maxPendingService", 0);
+                      } else if (!Number.isInteger(value)) {
+                        handleInputChange(
+                          "maxPendingService",
+                          Math.floor(value)
+                        );
+                      } else {
+                        handleInputChange("maxPendingService", value);
+                      }
+                    }}
+                    placeholder="e.g., 5"
                   />
                 </div>
 

@@ -140,13 +140,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         console.log("error getting info");
       }
     };
-    if (transactions.length === 0 || payment.length === 0) {
+    if (
+      (transactions.length === 0 ||
+        payment.length === 0 ||
+        notifications?.length === 0) &&
+      user
+    ) {
       FetchData();
     }
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -173,12 +178,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const handleNotification = (notification) => {
       setNotifications((prev) => [notification, ...prev]);
     };
+    const handleNotificationsUpdated = () => {
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) => ({
+          ...notification,
+          seen: true,
+        }))
+      );
+    };
 
     socket.on("notification", handleNotification);
+    socket.on("notificationsUpdated", handleNotificationsUpdated);
     return () => {
       socket.off("notification", handleNotification);
     };
   }, [user, socket]);
+
+  useEffect(() => {
+    if (!user) {
+      setTransactions([]);
+      setPayment([]);
+      setServices([]);
+      setRequests(undefined);
+      setNotifications([]);
+    }
+  }, [user]);
 
   const getDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-GB", {
@@ -403,6 +427,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setDialogInfo,
         notifications,
         setNotifications,
+        socket,
       }}
     >
       {children}

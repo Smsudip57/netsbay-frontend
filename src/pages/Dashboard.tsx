@@ -142,6 +142,7 @@ const DashboardHome = () => {
                 style={{
                   scrollbarWidth: "thin",
                   msOverflowStyle: "none",
+                  scrollbarColor: "#3676E0 transparent",
                 }}
               >
                 {services

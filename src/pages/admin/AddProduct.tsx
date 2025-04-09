@@ -27,12 +27,13 @@ const AddProduct = () => {
     storage: "",
     inStock: true,
     os: "",
-    price: "", // Price in NC
+    price: "",
+    maxPendingService:0
   });
   const [ipsets, setIpsets] = useState<string[]>([]);
   const [osTypes, setOsTypes] = useState<string[]>([]);
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -50,7 +51,7 @@ const AddProduct = () => {
       !formData.ram ||
       !formData.storage ||
       !formData.os ||
-      !formData.price
+      !formData.price 
     ) {
       toast.error("Please fill in all fields");
       return;
@@ -246,16 +247,25 @@ const AddProduct = () => {
                   </Select>
                 </div>
 
-                {/* <div className="space-y-2">
-                  <Label htmlFor="os">Operating System</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="maxPendingService">Maximum Pending Service</Label>
                   <Input
-                    id="os"
-                    type="text"
-                    value={formData.os}
-                    onChange={(e) => handleInputChange("os", e.target.value)}
-                    placeholder="OS name"
+                    id="maxPendingService"
+                    type="number"
+                    value={formData.maxPendingService}
+                    onChange={(e) => {
+                      const value = Number(e.target.value); // Convert to number
+                      if (value < 0) {
+                        handleInputChange("maxPendingService", 0);
+                      } else if (!Number.isInteger(value)) {
+                        handleInputChange("maxPendingService", Math.floor(value));
+                      } else {
+                        handleInputChange("maxPendingService", value);
+                      }
+                    }}
+                    placeholder="e.g., 5"
                   />
-                </div> */}
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (NC)</Label>
