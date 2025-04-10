@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
@@ -295,6 +295,12 @@ const DashboardHome = () => {
 };
 
 const Dashboard = () => {
+  const { user, loading } = useAppContext();
+  const navigate = useNavigate();
+
+  if (!loading && !user) {
+    navigate("/signin", { replace: true });
+  }
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

@@ -131,7 +131,7 @@ const SignUp = () => {
   const [countdown, setCountdown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [sendCodeLoading, setSendCodeLoading] = useState(false);
-  const { setUser } = useAppContext();
+  const { setUser, setLoading } = useAppContext();
 
   const handleNext = async () => {
     let fieldsToValidate = [];
@@ -164,7 +164,7 @@ const SignUp = () => {
     if (step === 4 && !Codeisthere) {
       return;
     }
-
+    setLoading(true);
     try {
       const response = await axios.post("/api/register", data, {
         headers: {
@@ -191,6 +191,8 @@ const SignUp = () => {
         description: error.response.data.message || "Something went wrong!",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 

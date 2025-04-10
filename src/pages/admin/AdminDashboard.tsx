@@ -1,4 +1,3 @@
-
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/Sidebar";
 import { Header } from "@/components/dashboard/Header";
@@ -20,6 +19,8 @@ import Coupons from "./Coupons";
 import AddCoupon from "./AddCoupon";
 import AddCoinCoupon from "./AddCoinCoupon";
 import ServiceDetails from "../dashboard/ServiceDetails";
+import { useAppContext } from "@/context/context";
+import { useNavigate } from "react-router-dom";
 
 const DashboardHome = () => {
   return (
@@ -27,19 +28,25 @@ const DashboardHome = () => {
       <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-100/50">
         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
         <p className="text-muted-foreground">Welcome to the admin dashboard.</p>
-        
+
         <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="p-6 bg-primary/5 rounded-lg border border-primary/10">
             <h3 className="font-semibold mb-2">Service Management</h3>
-            <p className="text-sm text-muted-foreground">Add and manage services</p>
+            <p className="text-sm text-muted-foreground">
+              Add and manage services
+            </p>
           </div>
           <div className="p-6 bg-primary/5 rounded-lg border border-primary/10">
             <h3 className="font-semibold mb-2">Product Management</h3>
-            <p className="text-sm text-muted-foreground">Manage products and inventory</p>
+            <p className="text-sm text-muted-foreground">
+              Manage products and inventory
+            </p>
           </div>
           <div className="p-6 bg-primary/5 rounded-lg border border-primary/10">
             <h3 className="font-semibold mb-2">Request Management</h3>
-            <p className="text-sm text-muted-foreground">Handle user requests and support</p>
+            <p className="text-sm text-muted-foreground">
+              Handle user requests and support
+            </p>
           </div>
         </div>
       </div>
@@ -48,6 +55,15 @@ const DashboardHome = () => {
 };
 
 const AdminDashboard = () => {
+  const { user, loading } = useAppContext();
+  const navigate = useNavigate();
+
+  if (!loading && user?.role !== "admin") {
+    navigate("/dashboard", { replace: true });
+  }
+  if (loading || user?.role !== "admin") {
+    return <></>;
+  }
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

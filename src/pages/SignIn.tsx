@@ -48,7 +48,7 @@ const SignIn = () => {
       password: "",
     },
   });
-  const { setUser } = useAppContext();
+  const { setUser, setLoading: userloading } = useAppContext();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -69,7 +69,7 @@ const SignIn = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+    userloading(true);
     try {
       const response = await axios.post("/api/login", data, {
         withCredentials: true,
@@ -93,6 +93,7 @@ const SignIn = () => {
       );
     } finally {
       setLoading(false);
+      userloading(false);
     }
   };
 
