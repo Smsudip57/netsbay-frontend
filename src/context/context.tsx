@@ -409,6 +409,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         user,
         setUser,
         loading,
+        setLoading,
         transactions,
         setTransactions,
         payment,
