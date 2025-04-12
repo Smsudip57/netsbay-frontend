@@ -1,4 +1,4 @@
-import { WalletIcon, ArrowRight, Gift, Download } from "lucide-react";
+import { WalletIcon, ArrowRight, Gift, Download, QrCode } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import axios from "axios";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import moment from "moment";
+import { set } from "date-fns";
 // import "react-toastify/dist/ReactToastify.css";
 
 // Replace your current declaration with this:
@@ -72,16 +73,32 @@ interface InvoiceData {
 const Wallet = () => {
   const navigate = useNavigate();
   const [redeemCode, setRedeemCode] = useState("");
-  const { user, transactions, setTransactions, payment, setPayment,generatePDF } =
-    useAppContext();
+  const {
+    user,
+    transactions,
+    setTransactions,
+    payment,
+    setPayment,
+    generatePDF,
+    setUser
+  } = useAppContext();
 
-  const handleRedeem = () => {
-    if (!redeemCode.trim()) {
-      toast.error("Please enter a redeem code");
-      return;
+  const handleRedeem = async () => {
+    try {
+      const response = await axios.get("/api/user/apply_coupon", {
+        withCredentials: true,
+        params: {
+          token: redeemCode,
+        },
+      });
+      if (response?.data?.success) {
+        toast.success(response?.data?.message);
+        if (response?.data?.user) setUser(response?.data?.user);
+      }
+      setRedeemCode("");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Error redeeming code");
     }
-    toast.success("Redeem code submitted successfully!");
-    setRedeemCode("");
   };
 
   useEffect(() => {
@@ -139,24 +156,20 @@ const Wallet = () => {
     const transaction = transactions.find(
       (transaction: ITransaction) => transaction.transactionId === transactionID
     );
-    console.log(transaction);
     return transaction;
   };
 
   const ResentTransactions = (payment: any) => {
-    const recentPayments = payment?.filter(
-      (p: any) =>
-        p?.createdAt &&
-        new Date(p?.createdAt) > new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-    );
+    const recentPayments = payment?.slice(0, 5);
     return recentPayments.length > 0 ? recentPayments : [];
   };
+
   // const calculateTotals = () => {
   //   let subTotal = invoiceData.items.reduce((acc, item) => {
   //     const selectedItem = itemsList.find((i) => i.id === item.itemId);
   //     return acc + (selectedItem ? selectedItem.price * item.quantity : 0);
   //   }, 0);
-    
+
   //   let tax = 0;
   //   let total = 0;
 
@@ -168,7 +181,7 @@ const Wallet = () => {
   //     subTotal = total / 1.18;
   //     tax = total - subTotal;
   //   }
-    
+
   //   total -= invoiceData.discount; // Apply discount
   //   setInvoiceData((prevData) => ({ ...prevData, subTotal, tax, total }));
   // };
@@ -213,9 +226,63 @@ const Wallet = () => {
   //   });
   // };
 
- 
+  const Counter = ({ createdAt }) => {
+    const [timeLeft, setTimeLeft] = useState("");
 
-  console.log(user);
+    useEffect(() => {
+      // Skip if no createdAt
+      if (!createdAt) {
+        setTimeLeft("--:--:--");
+        return;
+      }
+
+      // Convert createdAt to timestamp
+      const createdTime = new Date(createdAt).getTime();
+      // Calculate expiry time (createdAt + 1 hour)
+      const expiryTime = createdTime + 60 * 60 * 1000; // 1 hour in milliseconds
+
+      // Function to update the countdown
+      const updateTimer = () => {
+        const now = new Date().getTime();
+        const difference = expiryTime - now;
+
+        if (difference <= 0) {
+          // Timer expired
+          setTimeLeft("Expired");
+          clearInterval(interval);
+          return;
+        }
+
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        const formattedMinutes = String(minutes).padStart(2, "0");
+        const formattedSeconds = String(seconds).padStart(2, "0");
+
+        setTimeLeft(`${formattedMinutes}:${formattedSeconds}`);
+      };
+
+      // Update timer immediately and then every second
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+
+      // Clean up interval on component unmount
+      return () => clearInterval(interval);
+    }, [createdAt]);
+
+    return (
+      <p className="font-mono text-sm font-medium opacity-65">
+        {timeLeft === "Expired" ? (
+          <span className="text-red-500">Expired</span>
+        ) : (
+          <span className="text-amber-600 dark:text-amber-500">{timeLeft}</span>
+        )}
+      </p>
+    );
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="glass-card p-8">
@@ -296,7 +363,9 @@ const Wallet = () => {
                   >
                     <div>
                       <p className="font-medium">
-                        {relatedTransation(p?.transactionID)?.description}
+                        {p?.status !== "Pending"
+                          ? relatedTransation(p?.transactionID)?.description
+                          : "Pending"}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {getDate(p?.createdAt)} • {p?.paymentType}
@@ -310,24 +379,36 @@ const Wallet = () => {
                         </div>
                         {p?.Price !== "N/A" && (
                           <div className="text-sm text-muted-foreground">
-                            {p?.paymentType === "Phonepe" ? "₹" : "$"}
+                            {p?.paymentType !== "Cryptomous" ? "₹" : "$"}
                             {p?.Price}
                           </div>
                         )}
                       </div>
-                      {/* {p?.paymentType === "Cryptomous" && ( */}
-                      {p?.paymentType === "Phonepe" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            generatePDF(p)
-                          }
-                        >
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only">Download Invoice</span>
-                        </Button>
+                      {p?.status === "Pending" && (
+                        <Counter createdAt={p?.createdAt} />
                       )}
+                      {/* {p?.paymentType === "Cryptomous" && ( */}
+                      {p?.paymentType !== "Cryptomous" &&
+                        (p?.status === "Pending" ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            style={{ padding: "5px" }}
+                            title="UPI Only"
+                          >
+                            <QrCode className="h-4 w-4" />
+                            <span className="text-xs">Pay</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => generatePDF(p)}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download Invoice</span>
+                          </Button>
+                        ))}
                     </div>
                   </div>
                 ))}

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { FileText, Download, QrCode } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { FileText, Download, QrCode, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,28 +14,9 @@ import axios from "axios";
 import { useAppContext } from "@/context/context";
 
 const Invoices = () => {
-  const { transactions, setTransactions, payment, setPayment, generatePDF } =
+  const { transactions, setTransactions, payment, setPayment, generatePDF, user } =
     useAppContext();
-  const invoices = [
-    {
-      id: "INV-001",
-      date: "2024-02-20",
-      netcoins: 200,
-      subtotal: 200.0,
-      gst: 36.0, // 18% GST
-      total: 236.0,
-      status: "Paid",
-    },
-    {
-      id: "INV-002",
-      date: "2024-02-15",
-      netcoins: 500,
-      subtotal: 500.0,
-      gst: 90.0, // 18% GST
-      total: 590.0,
-      status: "Paid",
-    },
-  ];
+
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -77,6 +58,62 @@ const Invoices = () => {
     });
   };
 
+
+   const Counter = ({ createdAt }) => {
+      const [timeLeft, setTimeLeft] = useState("");
+      
+      useEffect(() => {
+        // Skip if no createdAt
+        if (!createdAt) {
+          setTimeLeft("--:--:--");
+          return;
+        }
+        
+        // Convert createdAt to timestamp
+        const createdTime = new Date(createdAt).getTime();
+        // Calculate expiry time (createdAt + 1 hour)
+        const expiryTime = createdTime + (60 * 60 * 1000); // 1 hour in milliseconds
+        
+        // Function to update the countdown
+        const updateTimer = () => {
+          const now = new Date().getTime();
+          const difference = expiryTime - now;
+          
+          if (difference <= 0) {
+            // Timer expired
+            setTimeLeft("Expired");
+            clearInterval(interval);
+            return;
+          }
+          
+          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+          
+          const formattedMinutes = String(minutes).padStart(2, '0');
+          const formattedSeconds = String(seconds).padStart(2, '0');
+          
+          setTimeLeft(`${formattedMinutes}:${formattedSeconds}`);
+        };
+        
+        // Update timer immediately and then every second
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        
+        // Clean up interval on component unmount
+        return () => clearInterval(interval);
+      }, [createdAt]);
+      
+      return (
+        <p className="font-mono text-sm font-medium opacity-65" >
+          {timeLeft === "Expired" ? (
+            <span className="text-red-500">Expired</span>
+          ) : (
+            <span className="text-amber-600 dark:text-amber-500">{timeLeft}</span>
+          )}
+        </p>
+      );
+    };
+
   return (
     <main className="p-6 flex-1">
       <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-100/50">
@@ -101,29 +138,29 @@ const Invoices = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payment?.map((invoice: any) => (
+                {(user?.role === "user" ? payment : payment?.filter((payment: any) => payment?.user?._id === user?._id))?.map((invoice: any) => (
                   <TableRow key={invoice?.invoiceId}>
                     <TableCell className="font-medium">
-                      {invoice?.paymentMethod === "Phonepe"
+                      {invoice?.paymentType !== "Cryptomous"
                         ? invoice?.invoiceId
                         : "No Invoice For Crypto"}
                     </TableCell>
                     <TableCell>{getDate(invoice?.createdAt)}</TableCell>
                     <TableCell>{invoice?.coinAmout} NC</TableCell>
                     <TableCell>
-                      {invoice?.paymentType === "Phonepe" ? "₹" : "$"}
-                      {invoice?.paymentType === "Phonepe"
+                      {invoice?.paymentType !== "Cryptomous" ? "₹" : "$"}
+                      {invoice?.paymentType !== "Cryptomous"
                         ? (invoice?.Price / 1.18)?.toFixed(2)
                         : invoice?.Price}
                     </TableCell>
                     <TableCell>
-                      {invoice?.paymentType === "Phonepe" ? "₹" : ""}
-                      {invoice?.paymentType === "Phonepe"
+                      {invoice?.paymentType !== "Cryptomous" ? "₹" : ""}
+                      {invoice?.paymentType !== "Cryptomous"
                         ? (invoice?.Price - invoice?.Price / 1.18)?.toFixed(2)
                         : "none"}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {invoice?.paymentType === "Phonepe" ? "₹" : "$"}
+                      {invoice?.paymentType !== "Cryptomous" ? "₹" : "$"}
                       {invoice?.Price}
                     </TableCell>
                     <TableCell>
@@ -138,18 +175,21 @@ const Invoices = () => {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      {invoice?.paymentType === "Phonepe" ? (
+                      {invoice?.paymentType !== "Cryptomous" ? (
                         // {invoice?.paymentType === "Cryptomous" ? (
                         invoice?.status === "Pending" ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <Counter createdAt={invoice?.createdAt} />
                           <Button
                             variant="ghost"
                             size="sm"
                             style={{ padding: "5px" }}
                             title="UPI Only"
-                          >
+                            >
                             <QrCode className="h-4 w-4" />
                             <span className="text-xs">Pay</span>
                           </Button>
+                            </div>
                         ) : (
                           <Button
                             variant="ghost"

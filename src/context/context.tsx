@@ -63,6 +63,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [payment, setPayment] = useState<any>([]);
   const [services, setServices] = useState<any>([]);
   const [requests, setRequests] = useState();
+  const [userRequests, setUserRequests] = useState();
   const [showRebuildDialog, setShowRebuildDialog] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [handleRebuildRequest, setHandleRebuildRequest] = useState(
@@ -429,6 +430,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         notifications,
         setNotifications,
         socket,
+        userRequests,
+        setUserRequests,
       }}
     >
       {children}

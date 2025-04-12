@@ -41,27 +41,30 @@ const Coupons = () => {
 
         setProductCoupons(productCoupons);
         setCoinCoupons(coinCoupons);
-      } catch (error) {}
+      } catch (error) {console.log(error)}
     };
 
     fetchData();
   }, []);
 
-  const getStatusColor = (data: any, val:boolean) => {
+  const getStatusColor = (data: any, val: boolean) => {
     let status = "expired";
     const date = new Date(data?.endDate);
 
-    if (date > new Date() && (data?.maxUses ? data?.used < data.maxUses: true)) {
+    if (
+      date > new Date() &&
+      (data?.maxUses ? data?.used < data.maxUses : true)
+    ) {
       status = "active";
     }
     if (!data?.isActive) {
       status = data.isActive ? "active" : "inactive";
     }
-    if(data?.masterType === "coin") {
+    if (data?.masterType === "coin") {
       status = data.isActive ? "active" : "inactive";
     }
     if (val) {
-      return status
+      return status;
     }
 
     switch (status) {
@@ -86,20 +89,47 @@ const Coupons = () => {
     });
   };
 
-  const handleDelete = async(_id: String, type: "product" | "coin") => {
+  const handleDelete = async (_id: string, type: "product" | "coin") => {
     try {
-      const res:any =  await axios.delete(`/api/admin/delete_coupon`, {
+      const res: any = await axios.delete(`/api/admin/delete_coupon`, {
         params: {
           couponId: _id,
         },
-        withCredentials: true
-      })
-      if(res?.data) {
-        setProductCoupons((prev: any) => prev.filter((coupon: any) => coupon._id !== _id));
+        withCredentials: true,
+      });
+      if (res?.data) {
+        setProductCoupons((prev: any) =>
+          prev.filter((coupon: any) => coupon._id !== _id)
+        );
         toast.success(res?.data?.message);
       }
     } catch (error) {
       toast.error("Failed to delete coupon.");
+    }
+  };
+
+  const handleStatus = async (value: boolean, couponId: string) => {
+    try {
+      const res = await axios.post(
+        "/api/admin/coupon_status",
+        {
+          couponId: couponId,
+          value: value,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      if (res?.data) {
+        setProductCoupons((prev: any) =>
+          prev.map((coupon: any) =>
+            coupon._id === couponId ? { ...coupon, isActive: value } : coupon
+          )
+        );
+        toast.success(res?.data?.message);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update status.");
     }
   };
 
@@ -109,7 +139,6 @@ const Coupons = () => {
     type: "product" | "coin"
   ) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
-    
   };
 
   const handleCopyToken = (token: string) => {
@@ -221,7 +250,9 @@ const Coupons = () => {
                                 {getDate(coupon?.endDate)}
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
-                                <Badge className={getStatusColor(coupon, false)}>
+                                <Badge
+                                  className={getStatusColor(coupon, false)}
+                                >
                                   {getStatusColor(coupon, true)}
                                 </Badge>
                               </TableCell>
@@ -235,14 +266,13 @@ const Coupons = () => {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleToggleStatus(
-                                          coupon.id,
-                                          coupon.status,
-                                          "product"
+                                        handleStatus(
+                                          !coupon?.isActive,
+                                          coupon._id
                                         )
                                       }
                                     >
-                                      {coupon.status === "active"
+                                      {coupon?.isActive
                                         ? "Deactivate"
                                         : "Activate"}
                                     </DropdownMenuItem>
@@ -314,7 +344,7 @@ const Coupons = () => {
                                 {coupon?.coinAmmount} NC
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
-                              {coupon?.maxUses
+                                {coupon?.maxUses
                                   ? `${coupon?.used || 0}/${coupon.maxUses}`
                                   : "Unlimited"}
                               </TableCell>
@@ -335,14 +365,13 @@ const Coupons = () => {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleToggleStatus(
-                                          coupon.id,
-                                          coupon.status,
-                                          "coin"
+                                        handleStatus(
+                                          !coupon?.isActive,
+                                          coupon._id
                                         )
                                       }
                                     >
-                                      {coupon.status === "active"
+                                      {coupon?.isActive
                                         ? "Deactivate"
                                         : "Activate"}
                                     </DropdownMenuItem>
