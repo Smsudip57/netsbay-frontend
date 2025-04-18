@@ -9,9 +9,11 @@ import {
   Grid,
   Globe,
   Calendar,
+  Search,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -38,10 +40,13 @@ const AdminServices = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [provider, setprovider] = useState<string>("all");
   const [viewType, setViewType] = useState<"list" | "cards">("list");
   const [mockServices, setMockServices] = useState<any>([]);
+  const [searchQuery, setSearchQuery] = useState<string>(""); // Add search query state
   const { setShowRebuildDialog, setHandleRebuildRequest, setDialogInfo } =
     useAppContext();
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "online":
@@ -56,14 +61,36 @@ const AdminServices = () => {
         return null;
     }
   };
-
   const filteredServices = mockServices.filter((service: any) => {
+    if (statusFilter === "expired5days") {
+      const expiryDate = new Date(service.expiryDate);
+      const fiveDaysAgo = new Date();
+      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+      return service.status === "expired" && expiryDate < fiveDaysAgo;
+    }
+
     const matchesStatus =
       statusFilter === "all" || service.status === statusFilter;
+
     const matchesType =
       typeFilter === "all" ||
       service?.relatedProduct?.serviceType === typeFilter;
-    return matchesStatus && matchesType;
+
+    const matchesProvider =
+      provider === "all" || service?.purchedFrom === provider;
+
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch =
+      searchQuery === "" ||
+      service?.ipAddress?.toLowerCase().includes(searchLower) ||
+      service?.serviceNickname?.toLowerCase().includes(searchLower) ||
+      service?.relatedUser?.email?.toLowerCase().includes(searchLower) ||
+      service?.relatedProduct?.serviceType?.toLowerCase().includes(searchLower) ||
+      service?.relatedProduct?.Os?.toLowerCase().includes(searchLower) ||
+      service?.serviceId?.toLowerCase().includes(searchLower);
+
+    return matchesStatus && matchesType && matchesProvider && matchesSearch;
   });
 
   const getExpiryDate = (purchaseDate) => {
@@ -87,7 +114,7 @@ const AdminServices = () => {
       message: "delete this service",
       onclick: "Delete",
     });
-    setHandleRebuildRequest(() =>()=> handleDeleteService(serviceId))
+    setHandleRebuildRequest(() => () => handleDeleteService(serviceId))
   };
 
   const handleDeleteService = async (serviceId: string) => {
@@ -288,6 +315,17 @@ const AdminServices = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">All Services</h2>
           <div className="flex items-center gap-4">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search IP, name, user, type..."
+                className="pl-8 w-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* View toggle */}
             <div className="flex items-center gap-2">
               <Button
                 variant={viewType === "list" ? "default" : "outline"}
@@ -317,6 +355,7 @@ const AdminServices = () => {
                   <SelectItem value="terminated">Terminated</SelectItem>
                   <SelectItem value="unsold">Unsold</SelectItem>
                   <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="expired5days">5+ Days Expired</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -330,6 +369,23 @@ const AdminServices = () => {
                 <SelectItem value="External RDP">External RDP</SelectItem>
                 <SelectItem value="Internal Linux">Internal Linux</SelectItem>
                 <SelectItem value="External Linux">External Linux</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={provider} onValueChange={setprovider}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Filter by provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Providers</SelectItem>
+                {Array.from(new Set(mockServices
+                  .filter(service => service?.purchedFrom)
+                  .map(service => service?.purchedFrom)))
+                  .map((providerName: string, i: number) => (
+                    <SelectItem key={i} value={providerName}>
+                      {providerName}
+                    </SelectItem>
+                  ))
+                }
               </SelectContent>
             </Select>
           </div>

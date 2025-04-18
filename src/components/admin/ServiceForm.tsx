@@ -30,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const formSchema = z.object({
@@ -146,6 +147,7 @@ export function ServiceForm() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isBulkMode, setIsBulkMode] = useState(false);
+  const navigate = useNavigate();
   const [verifiedData, setVerifiedData] = useState<
     Array<{
       ip: string;
@@ -242,6 +244,7 @@ export function ServiceForm() {
       });
       if (res?.data) {
         toast.success(res?.data?.message);
+        navigate("/admin/services");
       }
     } catch (error) {
       toast.error("Failed to add service.");

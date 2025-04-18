@@ -21,6 +21,7 @@ import AddCoinCoupon from "./AddCoinCoupon";
 import ServiceDetails from "../dashboard/ServiceDetails";
 import { useAppContext } from "@/context/context";
 import { useNavigate } from "react-router-dom";
+import Profile from "@/pages/ProfilePage"; 
 
 const DashboardHome = () => {
   return (
@@ -72,6 +73,7 @@ const AdminDashboard = () => {
           <Header />
           <Routes>
             <Route index element={<DashboardHome />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="add-service" element={<AddService />} />
             <Route path="services" element={<AdminServices />} />
             <Route path="services/:id" element={<ServiceDetails />} />

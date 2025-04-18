@@ -103,7 +103,7 @@ const RequestCard = ({ request, isAction = false }: any) => {
 };
 
 const Requests = () => {
-  const {userRequests:requests, setUserRequests:setRequests   } = useAppContext();
+  const { userRequests: requests, setUserRequests: setRequests } = useAppContext();
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -134,29 +134,29 @@ const Requests = () => {
     (request: any) => request.requestType === "Service"
   );
   const actionRequests = requests?.filter(
-    (request: any) => request.requestType !== "Service"
+    (request: any) => request.status === "Pending"
   );
   return (
     <main className="p-6 flex-1">
       <div className="bg-gradient-to-b from-white/50 to-white/30 dark:from-slate-900/50 dark:to-slate-900/30 backdrop-blur-xl rounded-lg p-6 border border-gray-100/50 dark:border-slate-700/50 shadow-sm">
         <div className="mb-6">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
-            Service Request
+            Action Request
           </h2>
           <p className="text-muted-foreground mt-1">
             Manage your service requests and actions
           </p>
         </div>
 
-        <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 h-12">
+        <Tabs defaultValue="actions" className="space-y-4">
+          {/* <TabsList className="grid w-full grid-cols-2 h-12">
             <TabsTrigger value="pending" className="text-sm">
               Pending Service Requests
             </TabsTrigger>
             <TabsTrigger value="actions" className="text-sm">
               All Service Requests
             </TabsTrigger>
-          </TabsList>
+          </TabsList> */}
 
           <TabsContent value="pending" className="space-y-4">
             {prendingRequests?.map((request: any) => (
@@ -165,9 +165,16 @@ const Requests = () => {
           </TabsContent>
 
           <TabsContent value="actions" className="space-y-4">
-            {actionRequests?.map((request: any) => (
+            {actionRequests?.length > 0 ? actionRequests?.map((request: any) => (
               <RequestCard key={request._id} request={request} />
-            ))}
+            )) :
+              (
+                <div className="w-full h-[75vh] flex items-center justify-center">
+                  No request found
+
+                </div>
+              )
+            }
           </TabsContent>
         </Tabs>
       </div>

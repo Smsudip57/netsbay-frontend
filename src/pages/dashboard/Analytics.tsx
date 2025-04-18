@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { AnyAaaaRecord } from "node:dns";
 
-const getPriorityColor = (date: Date, status:boolean) => {
+const getPriorityColor = (date: Date, status: boolean) => {
   const currentDate = new Date();
   const givenDate = new Date(date);
   const diffTime = currentDate.getTime() - givenDate.getTime();
@@ -24,22 +24,18 @@ const getPriorityColor = (date: Date, status:boolean) => {
   // Determine priority based on date age
   let priority: string;
   if (diffDays < 5) {
-    priority = "high";
-  } else if (diffDays < 10) {
-    priority = "medium";
-  } else {
-    priority = "low";
+    priority = "Latest";
   }
   if (status) {
     return priority;
   }
   switch (priority) {
-    case "high":
-      return "bg-red-50 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30";
-    case "medium":
-      return "bg-yellow-50 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30";
-    default:
-      return "bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/30";
+    case "Latest":
+      return "bg-yellow-50 border dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30";
+    // case "medium":
+    // return "bg-red-50 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30";
+    // default:
+    //   return "bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/30";
   }
 };
 
@@ -67,7 +63,7 @@ const Analytics = () => {
         if (res?.data) {
           setannouncements(res?.data);
         }
-      } catch (error) {}
+      } catch (error) { }
     };
     fetchData();
   }, []);
@@ -185,7 +181,7 @@ const Analytics = () => {
                     <span
                       className={`text-xs px-3 py-1 rounded-full ${getPriorityColor(
                         announcement?.createdAt, false
-                      )} border`}
+                      )} `}
                     >
                       {getPriorityColor(announcement?.createdAt, true)}
                     </span>

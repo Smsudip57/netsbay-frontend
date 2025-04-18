@@ -4,6 +4,7 @@ import { ServiceCardView } from "@/components/dashboard/service/ServiceCardView"
 import { ServiceFilters } from "@/components/dashboard/service/ServiceFilters";
 import { ViewToggle } from "@/components/dashboard/service/ViewToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { Check, X } from "lucide-react";
 import axios from "axios";
 import { useAppContext } from "@/context/context";
@@ -70,24 +71,59 @@ const Services = () => {
   const [ipSetList, setIpSetList] = useState<string[]>([]);
   const [typeList, setTypeList] = useState<string[]>([]);
   const { services } = useAppContext();
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const filteredActiveServices = mockServices.filter((service) => {
-    const isActive = (service?.status === "active" || service?.status === "pending") ;
-    const matchesType =
-      typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
-    const matchesIpSet =
-      ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
-    return isActive && matchesType && matchesIpSet;
-  });
 
-  const filteredExpiredServices = mockServices.filter((service) => {
-    const isExpired = service?.status === "expired";
-    const matchesType =
-      typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
-    const matchesIpSet =
-      ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
-    return isExpired && matchesType && matchesIpSet;
-  });
+  const filterServices = (services: IService[]) => {
+    return services.filter((service) => {
+      const isTypeMatch = typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
+      const isIpSetMatch = ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
+      const searchMatch = searchQuery === "" ||
+        service?.serviceNickname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service?.relatedProduct?.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service?.ipAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service?.relatedProduct?.Os?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service?.relatedProduct?.serviceType?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return isTypeMatch && isIpSetMatch && searchMatch;
+    });
+  };
+
+  const filteredActiveServices = filterServices(
+    mockServices.filter((service) =>
+      service?.status === "active" && service?.ipAddress
+    )
+  );
+
+  const filteredPendingServices = filterServices(
+    mockServices.filter((service) =>
+      !service?.ipAddress
+    )
+  );
+
+  const filteredExpiredServices = filterServices(
+    mockServices.filter((service) =>
+      service?.status === "expired"
+    )
+  );
+
+  // const filteredActiveServices = filterServices.filter((service) => {
+  //   const isActive = (service?.status === "active" || service?.status === "pending") ;
+  //   const matchesType =
+  //     typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
+  //   const matchesIpSet =
+  //     ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
+  //   return isActive && matchesType && matchesIpSet;
+  // });
+
+  // const filteredExpiredServices = filterServices.filter((service) => {
+  //   const isExpired = service?.status === "expired";
+  //   const matchesType =
+  //     typeFilter === "all" || service?.relatedProduct?.Os === typeFilter;
+  //   const matchesIpSet =
+  //     ipSetFilter === "all" || service?.relatedProduct?.ipSet === ipSetFilter;
+  //   return isExpired && matchesType && matchesIpSet;
+  // });
 
   useEffect(() => {
     if (services?.length > 0) {
@@ -109,6 +145,15 @@ const Services = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">Your Services</h2>
           <div className="flex items-center gap-4">
+            <div className="w-64">
+              <Input
+                type="text"
+                placeholder="Search Ip/Os/Nickname"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
             <ViewToggle viewType={viewType} onViewChange={setViewType} />
             <ServiceFilters
               ipSetFilter={ipSetFilter}
@@ -122,10 +167,15 @@ const Services = () => {
         </div>
 
         <Tabs defaultValue="active" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
             <TabsTrigger value="active" className="flex items-center gap-2">
               <Check className="h-4 w-4" />
               Active Services
+            </TabsTrigger>
+
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <X className="h-4 w-4" />
+              Pending Services
             </TabsTrigger>
             <TabsTrigger value="expired" className="flex items-center gap-2">
               <X className="h-4 w-4" />
@@ -146,6 +196,13 @@ const Services = () => {
               <ServiceListView services={filteredExpiredServices} />
             ) : (
               <ServiceCardView services={filteredExpiredServices} />
+            )}
+          </TabsContent>
+          <TabsContent value="pending" className="space-y-4">
+            {viewType === "list" ? (
+              <ServiceListView services={filteredPendingServices} />
+            ) : (
+              <ServiceCardView services={filteredPendingServices} />
             )}
           </TabsContent>
         </Tabs>

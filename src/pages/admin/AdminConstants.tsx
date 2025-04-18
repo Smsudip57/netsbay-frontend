@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Loader } from "lucide-react";
 import { set } from "date-fns";
+import { useAppContext } from "@/context/context";
 
 interface Key {
   name: string;
@@ -31,19 +32,24 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
   const [Data, setData] = useState<ApiRes[]>(data);
   const [loading, setLoading] = useState([]);
   const [createLoading, setCreateLoading] = useState(false);
+  const { showRebuildDialog,
+    setShowRebuildDialog,
+    handleRebuildRequest,
+    setDialogInfo,
+    setHandleRebuildRequest } = useAppContext();
 
   useEffect(() => {
     setData(data);
   }, [data]);
 
   const handleCreate = async () => {
-    if(keyInfo?.name === "ipSets") {
+    if (keyInfo?.name === "ipSets") {
       const validIPCharacters = /^[0-9.]*$/;
       if (!validIPCharacters.test(inputValue)) {
         setInputError(true);
         toast.error("Please enter a valid IP Address");
         return;
-      } 
+      }
     }
     setCreateLoading(true);
     try {
@@ -59,7 +65,7 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
       toast.success(res?.data?.message || "Created successfully");
     } catch (error) {
       toast.error("Failed to create system.");
-    }finally{
+    } finally {
       setCreateLoading(false);
     }
   };
@@ -74,7 +80,7 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
   };
 
   const handleDelete = async (id: string) => {
-    setLoading(prev=>[...prev, id]);
+    setLoading(prev => [...prev, id]);
     try {
       const res = await axios.delete(`/api/admin/delete_system`, {
         params: { id },
@@ -86,11 +92,23 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
         setData(newData);
       }
     } catch (error) {
-      toast.error("Failed to delete system.");
-    }finally{
-      setLoading(prev=>prev.filter(item=>item !== id));
+      toast.error(error?.response?.data?.message || "Failed to delete system.");
+    } finally {
+      setLoading(prev => prev.filter(item => item !== id));
     }
   };
+
+
+  const handleDeleteConfirmation = (id: string) => {
+    setShowRebuildDialog(true);
+    setDialogInfo({
+      title: `Delete this constant?`,
+      message: "delete this constant",
+      onclick: "Delete",
+    });
+    setHandleRebuildRequest(() => () => handleDelete(id))
+  };
+
 
   return (
     <div className="bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm rounded-lg p-6 border border-gray-100/50 mt-6">
@@ -103,15 +121,15 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
             <div className="flex items-center gap-4">
               <div className="flex flex-col">
                 <p className="text-sm text-gray-900 dark:text-slate-100 font-semibold">
-                  <span className="text-xs text-gray-500 dark:text-slate-400">{keyInfo.header} {index + 1} </span>  {item?.value}
-                </p>
+                </p> {item?.value}
+                <span className="text-xs text-gray-500 dark:text-slate-400 mt-2">{keyInfo.header} {index + 1} <br></br></span>
                 <p className="text-xs text-gray-500 dark:text-slate-400">
-                 {/* {keyInfo.placeholder}: {item?.name} */}
+                  {/* {keyInfo.placeholder}: {item?.name} */}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {loading.includes(item._id) ? <div className=" text-sm px-4"><Loader className="animate-spin" style={{ width: "1em", height: "1em" }} /></div> : <button className="text-xs text-white border transition-colors duration-200 hover:bg-red-600 py-1 px-2 rounded" onClick={() => handleDelete(item?._id)}>
+              {loading.includes(item._id) ? <div className=" text-sm px-4"><Loader className="animate-spin" style={{ width: "1em", height: "1em" }} /></div> : <button className="text-xs text-white border transition-colors duration-200 hover:bg-red-600 py-1 px-2 rounded" onClick={() => handleDeleteConfirmation(item?._id)}>
                 Delete
               </button>}
               <p className="text-xs text-gray-500 dark:text-slate-400">
@@ -136,10 +154,9 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
       <div className="flex gap-5 items-center mt-4">
         <input
           type="text"
-          placeholder={inputError ? "Please enter a value before creating" : "Create new IP Set"}
-          className={`w-full bg-gray-100 dark:bg-slate-800 p-2  rounded-md ${
-            inputError ? "border border-red-500 outline-none" : ""
-          }`}
+          placeholder={inputError ? "Please enter a value before creating" : keyInfo?.name === "ipSets" ? "Create new Ip Sets" : keyInfo?.name === "osType" ? "Create new Os Type" : "Create new Provider"}
+          className={`w-full bg-gray-100 dark:bg-slate-800 p-2  rounded-md ${inputError ? "border border-red-500 outline-none" : ""
+            }`}
           value={inputValue}
           onChange={(e) => {
             setInputValue(e.target.value);
@@ -158,7 +175,7 @@ const ListCard: React.FC<ListCardProps> = ({ data, keyInfo }) => {
           }}
           disabled={createLoading}
         >
-          {createLoading ? <Loader className="animate-spin" style={{ width: "1em", height: "1em" }} /> : <Pen style={{ width: ".8em", height: ".8em" }} /> } {" "}{createLoading ? "Creating..." : "Create"}
+          {createLoading ? <Loader className="animate-spin" style={{ width: "1em", height: "1em" }} /> : <Pen style={{ width: ".8em", height: ".8em" }} />} {" "}{createLoading ? "Creating..." : "Create"}
         </button>
       </div>
     </div>
@@ -173,7 +190,7 @@ const AdminLogs = () => {
   useEffect(() => {
     const fetchIpSets = async () => {
       try {
-        const res:{data:ApiRes[]} = await axios.get("/api/admin/system", {
+        const res: { data: ApiRes[] } = await axios.get("/api/admin/system", {
           withCredentials: true,
         });
         if (res?.data) {

@@ -87,7 +87,7 @@ const Transactions = () => {
 
             <Table>
               <TableBody>
-                {transactions.map((transaction:any) => (
+                {transactions.map((transaction: any) => (
                   <TableRow key={transaction?.transactionId}>
                     <TableCell className="w-1/6 font-medium">
                       {transaction?.transactionId}
@@ -104,12 +104,12 @@ const Transactions = () => {
                       {transaction?.description}
                     </TableCell>
                     <TableCell className="w-1/6 text-right">
-                      <span className="inline-flex items-center gap-1 font-medium">
+                      <span className={`inline-flex items-center gap-1 font-medium ${transaction?.amount > 0 ? "text-green-500" : "text-red-500"}`}>
                         {transaction?.amount} NC
                       </span>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))}Your Services
               </TableBody>
             </Table>
           </CardContent>

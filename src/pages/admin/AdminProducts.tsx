@@ -200,7 +200,7 @@ const AdminProducts = () => {
         );
       }
     } catch (error) {
-      toast.error("Failed to delete service.");
+      toast.error(error?.response?.data?.message || "Failed to delete service.");
     }
   };
 

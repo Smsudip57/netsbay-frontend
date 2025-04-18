@@ -178,31 +178,31 @@ const ProductPurchase = () => {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   {getIcon()}
-                  <h3 className="text-2xl font-semibold bg-gradient-to-r from-cyan-400 to-cyan-200 bg-clip-text text-transparent dark:from-cyan-400 dark:to-cyan-200">
+                  <h3 className="text-2xl font-semibold text-primary">
                     {service.productName}
                   </h3>
                 </div>
 
                 <div className="flex items-center gap-2 bg-white/5 dark:bg-black/20 rounded-lg p-3 mb-4 w-full">
-                  <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span>IP Set: {service.ipSet}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 bg-white/5 dark:bg-black/20 rounded-lg p-3">
-                    <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>OS: {service.Os}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/5 dark:bg-black/20 rounded-lg p-3">
-                    <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>CPU: {service.cpu} Cores</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/5 dark:bg-black/20 rounded-lg p-3">
-                    <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>RAM: {service.ram} GB</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/5 dark:bg-black/20 rounded-lg p-3">
-                    <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     <span>Storage: {service.storage} GB</span>
                   </div>
                 </div>
@@ -211,29 +211,29 @@ const ProductPurchase = () => {
 
             {/* Features Card */}
             <div className="rounded-xl glass-card p-6">
-              <h3 className="text-xl font-semibold text-cyan-400 mb-4">
+              <h3 className="text-xl font-semibold text-primary mb-4">
                 Features
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span>Root Access</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span>24/7 Support</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span>99.9% Uptime</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span>Unlimited Bandwidth</span>
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center gap-2 bg-cyan-500/10 text-cyan-400 p-4 rounded-lg">
+              <div className="mt-6 flex items-center gap-2 bg-primary/10 text-primary p-4 rounded-lg">
                 <AlertTriangle className="h-5 w-5" />
                 <p className="text-sm">
                   Your data and transactions are secure and encrypted.
@@ -282,7 +282,7 @@ const ProductPurchase = () => {
                   />
                   <Button
                     onClick={handleApplyCoupon}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                    className="bg-primary hover:bg-primary/80 text-white"
                   >
                     Apply
                   </Button>
@@ -311,7 +311,7 @@ const ProductPurchase = () => {
 
               <div className="pt-6 border-t border-white/10">
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-cyan-400">
+                  <h4 className="text-lg font-semibold text-primary">
                     Order Summary
                   </h4>
 
@@ -337,7 +337,7 @@ const ProductPurchase = () => {
 
                   <div className="flex justify-between items-center pt-4 border-t border-white/10">
                     <span className="font-medium">Total</span>
-                    <span className="text-xl font-bold text-cyan-400">
+                    <span className="text-xl font-bold text-primary">
                       {totalPrice.toFixed(2)} NC
                     </span>
                   </div>
@@ -347,7 +347,7 @@ const ProductPurchase = () => {
                     className={`w-full  text-white ${
                       user?.balance < totalPrice
                         ? "cursor-not-allowed bg-red-500"
-                        : "bg-cyan-500 hover:bg-cyan-600"
+                        : "bg-primary hover:bg-primary/80"
                     }`}
                     disabled={user?.balance < totalPrice}
                   >

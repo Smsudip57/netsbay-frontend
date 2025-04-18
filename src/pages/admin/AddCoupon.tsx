@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, ChevronsUpDown, User, Loader2, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const AddCoupon = () => {
   const navigate = useNavigate();
@@ -24,9 +25,7 @@ const AddCoupon = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [prohibitedUsers, setProhibitedUsers] = useState<string[]>([]);
-  const [userInput, setUserInput] = useState("");
-  const [productInput, setProductInput] = useState("");
-  const [prohibitedUserInput, setProhibitedUserInput] = useState("");
+  // const [productInput, setProductInput] = useState("");
   const [couponToken, setCouponToken] = useState("");
   const [label, setLabel] = useState("");
   const [discountAmmount, setDiscountAmmount] = useState<number>(0);
@@ -39,24 +38,23 @@ const AddCoupon = () => {
     return regex.test(token);
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = (userInput) => {
     if (userInput && !selectedUsers.includes(userInput)) {
       setSelectedUsers([...selectedUsers, userInput]);
-      setUserInput("");
     }
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = (productInput) => {
     if (productInput && !selectedProducts.includes(productInput)) {
       setSelectedProducts([...selectedProducts, productInput]);
-      setProductInput("");
+      // setProductInput("");
     }
   };
 
-  const handleAddProhibitedUser = () => {
+  const handleAddProhibitedUser = (prohibitedUserInput) => {
     if (prohibitedUserInput && !prohibitedUsers.includes(prohibitedUserInput)) {
       setProhibitedUsers([...prohibitedUsers, prohibitedUserInput]);
-      setProhibitedUserInput("");
+      // setProhibitedUserInput("");
     }
   };
 
@@ -76,19 +74,19 @@ const AddCoupon = () => {
     e.preventDefault();
     try {
       const response = await axios.post("/api/admin/create_coupon", {
-        masterType : "product",
-        label : label,
+        masterType: "product",
+        label: label,
         user: selectedUsers,
         userProhibited: prohibitedUsers,
         addUsersToProhibited: addToProhibition,
         productId: selectedProducts,
         discountAmmount: discountAmmount,
-        discountParcent : discountParcent,
+        discountParcent: discountParcent,
         maxUses: useCount,
         endDate: expiryDate,
         token: couponToken,
-      }, {withCredentials: true});
-      if(response?.data) {
+      }, { withCredentials: true });
+      if (response?.data) {
         toast.success("Coupon created successfully");
         navigate("/admin/coupons");
       }
@@ -144,14 +142,14 @@ const AddCoupon = () => {
               <div className="space-y-2 col-span-2">
                 <Label>User Emails (Empty for all users)</Label>
                 <div className="flex gap-2 mb-2">
-                  <Input
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Enter user Email"
+                  <UserEmailSearch
+                    value={selectedUsers}
+                    onChange={(user) => { handleAddUser(user?.email)}}
+                  // placeholder="Enter user Email"
                   />
-                  <Button type="button" onClick={handleAddUser}>
+                  {/* <Button type="button" onClick={handleAddUser}>
                     Add
-                  </Button>
+                  </Button> */}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedUsers.map((user) => (
@@ -167,16 +165,16 @@ const AddCoupon = () => {
               </div>
 
               <div className="space-y-2 col-span-2">
-                <Label>Product Emails (Empty for all products)</Label>
+                <Label>Product Ids (Empty for all products)</Label>
                 <div className="flex gap-2 mb-2">
-                  <Input
-                    value={productInput}
-                    onChange={(e) => setProductInput(e.target.value)}
-                    placeholder="Enter product ID"
+                  <UserProductSearch
+                    value={selectedProducts}
+                    onChange={(product) => handleAddProduct(product?.productId)}
+                    // placeholder="Enter product ID"
                   />
-                  <Button type="button" onClick={handleAddProduct}>
+                  {/* <Button type="button" onClick={handleAddProduct}>
                     Add
-                  </Button>
+                  </Button> */}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedProducts.map((product) => (
@@ -193,11 +191,11 @@ const AddCoupon = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="amountDeduct">Amount to Deduct (NC)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   value={discountAmmount}
                   onChange={(e) => setDiscountAmmount(parseInt(e.target.value))}
-                  id="amountDeduct" 
+                  id="amountDeduct"
                   placeholder="0"
                   min="0"
                 />
@@ -205,9 +203,9 @@ const AddCoupon = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="percentageDeduct">Percentage to Deduct</Label>
-                <Input 
-                  type="number" 
-                  id="percentageDeduct" 
+                <Input
+                  type="number"
+                  id="percentageDeduct"
                   value={discountParcent}
                   onChange={(e) => setDiscountParcent(parseInt(e.target.value))}
                   placeholder="0"
@@ -218,9 +216,9 @@ const AddCoupon = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="useCount">Count of Use</Label>
-                <Input 
-                  type="number" 
-                  id="useCount" 
+                <Input
+                  type="number"
+                  id="useCount"
                   value={useCount}
                   onChange={(e) => setUseCount(parseInt(e.target.value))}
                   placeholder="Leave empty for unlimited"
@@ -230,8 +228,8 @@ const AddCoupon = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="expiryDate">Expiry Date</Label>
-                <Input 
-                  type="date" 
+                <Input
+                  type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
                   id="expiryDate"
@@ -256,14 +254,14 @@ const AddCoupon = () => {
                 Users in this list will be blocked from using this coupon regardless of other settings
               </div>
               <div className="flex gap-2 mb-2">
-                <Input
-                  value={prohibitedUserInput}
-                  onChange={(e) => setProhibitedUserInput(e.target.value)}
-                  placeholder="Enter user Email to prohibit"
+                <UserEmailSearch
+                  value={prohibitedUsers}
+                  onChange={(user) => handleAddProhibitedUser(user?.email)}
+                  // placeholder="Enter user Email to prohibit"
                 />
-                <Button type="button" onClick={handleAddProhibitedUser}>
+                {/* <Button type="button" onClick={handleAddProhibitedUser}>
                   Add
-                </Button>
+                </Button> */}
               </div>
               <div className="flex flex-wrap gap-2">
                 {prohibitedUsers.map((user) => (
@@ -279,8 +277,8 @@ const AddCoupon = () => {
             </div>
 
             <div className="flex justify-end space-x-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => navigate("/admin/coupons")}
               >
@@ -298,3 +296,299 @@ const AddCoupon = () => {
 };
 
 export default AddCoupon;
+
+
+
+const UserEmailSearch = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const searchTimeout = useRef(null);
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const wrapperRef = useRef(null);
+
+  // Handle clicks outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSearch = (query) => {
+    setInputValue(query);
+
+    if (query.trim()) {
+      setOpen(true);
+    }
+
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/api/admin/search_user_by_email', {
+          params: { email: query },
+          withCredentials: true
+        });
+
+        if (response.data) {
+          setSearchResults(response.data);
+          if (response.data.length > 0) {
+            setOpen(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching users:', error);
+        toast.error('Failed to search users');
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+  };
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    onChange(user);
+    setInputValue("")
+    setOpen(false);
+  };
+
+  return (
+    <div className="w-full rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer ">
+
+
+      {/* Direct approach without Popover */}
+      <div ref={wrapperRef} className="relative">
+        <div className="flex items-center justify-between w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search user email..."
+            className="w-full bg-transparent outline-none"
+            value={inputValue}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => inputValue.trim() && setOpen(true)}
+          />
+          <div
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(!open);
+              setTimeout(() => inputRef.current?.focus(), 0);
+            }}
+          >
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </div>
+        </div>
+
+        {/* Dropdown menu */}
+        {open && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 w-full rounded-md border border-input bg-background shadow-md mt-1 overflow-hidden"
+          >
+            <div className="max-h-[300px] overflow-y-auto p-1">
+              {loading ? (
+                <div className="py-6 text-center">
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      className={`flex items-center px-2 py-1.5 text-sm rounded-sm cursor-pointer ${selectedUser?.email === user.email ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                        }`}
+                      onClick={() => handleSelectUser(user)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value.includes(user.email) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex flex-col w-full group">
+                        <span>{user.email}</span>
+                        <span className="text-xs text-muted-foreground max-h-0 overflow-hidden group-hover:max-h-10 transition-all duration-200">
+                          {user.firstName} {user.lastName}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-3 text-center text-sm text-muted-foreground">
+                  {inputValue ? "No users found" : "Type to search users"}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+const UserProductSearch = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const searchTimeout = useRef(null);
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const wrapperRef = useRef(null);
+
+  // Handle clicks outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSearch = (query) => {
+    setInputValue(query);
+
+    if (query.trim()) {
+      setOpen(true);
+    }
+
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/api/admin/search_productid', {
+          params: { id: query },
+          withCredentials: true
+        });
+
+        if (response.data) {
+          setSearchResults(response.data);
+          if (response.data.length > 0) {
+            setOpen(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching users:', error);
+        toast.error('Failed to search users');
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+  };
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    onChange(user);
+    setInputValue("")
+    setOpen(false);
+  };
+
+  return (
+    <div className="w-full rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer ">
+
+
+      {/* Direct approach without Popover */}
+      <div ref={wrapperRef} className="relative">
+        <div className="flex items-center justify-between w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search user productid..."
+            className="w-full bg-transparent outline-none"
+            value={inputValue}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => inputValue.trim() && setOpen(true)}
+          />
+          <div
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(!open);
+              setTimeout(() => inputRef.current?.focus(), 0);
+            }}
+          >
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </div>
+        </div>
+
+        {/* Dropdown menu */}
+        {open && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 w-full rounded-md border border-input bg-background shadow-md mt-1 overflow-hidden"
+          >
+            <div className="max-h-[300px] overflow-y-auto p-1">
+              {loading ? (
+                <div className="py-6 text-center">
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      className={`flex items-center px-2 py-1.5 text-sm rounded-sm cursor-pointer`}
+                      onClick={() => handleSelectUser(user)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value.includes(user?.productId) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex flex-col w-full group">
+                        <span>{user?.productName} • {user?.cpu}C / {user?.ram}GB / {user?.storage}GB</span>
+                        <span className="text-xs text-muted-foreground max-h-0 overflow-hidden group-hover:max-h-10 transition-all duration-200">
+                          {user?.productId}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-3 text-center text-sm text-muted-foreground">
+                  {inputValue ? "No users found" : "Type to search users"}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

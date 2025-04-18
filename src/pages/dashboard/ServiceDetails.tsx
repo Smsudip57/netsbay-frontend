@@ -6,9 +6,7 @@ import { ResourceUtilization } from "@/components/dashboard/service/ResourceUtil
 import { ServiceCredentials } from "@/components/dashboard/service/ServiceCredentials";
 import { ServiceStatusCard } from "@/components/dashboard/service/ServiceStatusCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle, Hash, ArrowRight, Save } from "lucide-react";
-import { act, useEffect, useState } from "react";
-import axios from "axios";
+import { ArrowLeft, AlertCircle, ArrowRight, Save } from "lucide-react";
 import { useAppContext } from "@/context/context";
 import { toast } from "sonner";
 import ServiceAddCredentials from "@/components/admin/ServiceAddCredentials";
@@ -20,7 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { set } from "date-fns";
+import { useEffect, useState, useRef } from "react";
+import { Check, ChevronsUpDown, Hash, Loader2, User } from "lucide-react";
+import { cn } from "@/lib/utils";
+import axios from "axios"
+
 
 // Mock data for resource utilization
 
@@ -94,12 +96,14 @@ const ServiceDetails = () => {
     expiryDate: string;
     vmtype: any;
     purchedFrom?: string;
+    relatedUser?: any;
   }>({
     vmID: "",
     EXTRLhash: "",
     expiryDate: "",
     vmtype: "",
     purchedFrom: "",
+    relatedUser: ""
   });
   const [allPlans, setAllPlans] = useState([]);
   const [providers, setProviders] = useState([]);
@@ -159,7 +163,7 @@ const ServiceDetails = () => {
                 vmID: res?.data?.vmID,
                 EXTRLhash: res?.data?.EXTRLhash,
                 expiryDate: res?.data?.expiryDate,
-                vmtype:location.pathname.includes("/request") ? res?.data?.productMongoID: plans?.data?.find(
+                vmtype: location.pathname.includes("/request") ? res?.data?.productMongoID : plans?.data?.find(
                   (plan: any) =>
                     plan?.productId === res?.data?.relatedProduct?.productId
                 ),
@@ -201,6 +205,9 @@ const ServiceDetails = () => {
 
   const actions = () => {
     let actions = [];
+    if (!serviceDetails.ipAddress) {
+      return actions;
+    }
     if (serviceDetails?.relatedProduct?.serviceType?.includes("Internal")) {
       if (serviceDetails?.vmStatus === "running") {
         actions = ["stop", "reboot", "changepass"];
@@ -276,7 +283,8 @@ const ServiceDetails = () => {
       Change?.EXTRLhash !== serviceDetails?.EXTRLhash ||
       dateChanged ||
       Change?.vmtype?.productId !== serviceDetails?.relatedProduct?.productId ||
-      Change?.purchedFrom !== serviceDetails?.purchedFrom
+      Change?.purchedFrom !== serviceDetails?.purchedFrom ||
+      serviceDetails?.relatedUser !== Change?.relatedUser
     ) {
       return true;
     }
@@ -298,6 +306,7 @@ const ServiceDetails = () => {
           expiryDate: Change?.expiryDate,
           productId: Change?.vmtype?.productId,
           purchedFrom: Change?.purchedFrom,
+          relatedUser: Change?.relatedUser,
         },
         { withCredentials: true }
       );
@@ -353,40 +362,48 @@ const ServiceDetails = () => {
           {isAdmin && adminPath && (
             <div className="flex items-end justify-between">
               <div className="space-y-4 md:space-y-0 md:space-x-4 flex flex-col md:flex-row">
-                <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Hash className="h-3.5 w-3.5" />
-                      <span className="text-sm">Vm Id</span>
+                {
+                  Change?.vmtype?.serviceType?.includes("Internal") && (
+                    <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Hash className="h-3.5 w-3.5" />
+                          <span className="text-sm">Vm Id</span>
+                        </div>
+                      </div>
+                      <Input
+                        className="text-sm font-medium text-blue-500 truncate"
+                        type="text"
+                        placeholder={`Enter vm id`}
+                        value={serviceDetails?.vmID}
+                        onChange={(e) =>
+                          setChange({ ...Change, vmID: e.target.value })
+                        }
+                      />
                     </div>
-                  </div>
-                  <Input
-                    className="text-sm font-medium text-blue-500 truncate"
-                    type="text"
-                    placeholder={`Enter vm id`}
-                    value={serviceDetails?.vmID}
-                    onChange={(e) =>
-                      setChange({ ...Change, vmID: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Hash className="h-3.5 w-3.5" />
-                      <span className="text-sm">External Hash</span>
+                  )
+                }
+                {
+                  Change?.vmtype?.serviceType?.includes("External Linux") && (
+                    <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Hash className="h-3.5 w-3.5" />
+                          <span className="text-sm">External Hash</span>
+                        </div>
+                      </div>
+                      <Input
+                        className="text-sm font-medium text-blue-500 truncate"
+                        type="text"
+                        placeholder={`Enter external hash`}
+                        value={serviceDetails?.EXTRLhash}
+                        onChange={(e) =>
+                          setChange({ ...Change, EXTRLhash: e.target.value })
+                        }
+                      />
                     </div>
-                  </div>
-                  <Input
-                    className="text-sm font-medium text-blue-500 truncate"
-                    type="text"
-                    placeholder={`Enter external hash`}
-                    value={serviceDetails?.EXTRLhash}
-                    onChange={(e) =>
-                      setChange({ ...Change, EXTRLhash: e.target.value })
-                    }
-                  />
-                </div>
+                  )}
+
                 <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
                   <div className="flex items-center justify-between mb-2.5">
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -418,45 +435,61 @@ const ServiceDetails = () => {
                           key={plan?.productId}
                           value={plan.productId}
                         >
-                          {plan?.productName}
+                          {plan?.productName} • {plan?.cpu}C / {plan?.ram}GB / {plan?.storage}GB
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Hash className="h-3.5 w-3.5" />
-                      <span className="text-sm">Choose Provider</span>
+                {
+                  Change?.vmtype?.serviceType?.includes("External") && (
+                    <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer group">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Hash className="h-3.5 w-3.5" />
+                          <span className="text-sm">Choose Provider</span>
+                        </div>
+                      </div>
+                      <Select
+                        value={Change?.purchedFrom}
+                        onValueChange={(provider) => {
+                          setChange({ ...Change, purchedFrom: provider });
+                        }}
+                      >
+                        <SelectTrigger className="w-[220px]">
+                          <SelectValue placeholder="Choose provider">
+                            {Change?.purchedFrom || "Choose provider"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {providers?.map((item: any, index: number) => (
+                            <SelectItem key={index} value={item?.value}>
+                              {item?.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
-                  <Select
-                    value={Change?.purchedFrom}
-                    onValueChange={(provider) => {
-                      setChange({ ...Change, purchedFrom: provider });
-                    }}
-                  >
-                    <SelectTrigger className="w-[220px]">
-                      <SelectValue placeholder="Choose provider">
-                        {Change?.purchedFrom || "Choose provider"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {providers?.map((item: any, index: number) => (
-                        <SelectItem key={index} value={item?.value}>
-                          {item?.value}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  )
+                }
+                {
+                  (!serviceDetails?.relatedUser || serviceDetails?.status === "unsold") && (
+                    <UserEmailSearch
+                      val={Change?.relatedUser}
+                      onChange={(user) => {
+
+                        setChange({ ...Change, relatedUser: user._id });
+                      }}
+                    />
+                  )
+                }
+
               </div>
               {changeChecker() && (
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => handleUpdateService}
+                  onClick={handleUpdateService}
                   className="mb-6"
                   disabled={updateLoading}
                 >
@@ -545,3 +578,164 @@ const ServiceDetails = () => {
 };
 
 export default ServiceDetails;
+
+const UserEmailSearch = ({ val, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const searchTimeout = useRef(null);
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const value = searchResults?.find((user) => user._id === val)?.email;
+
+  // Handle clicks outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSearch = (query) => {
+    setInputValue(query);
+
+    if (query.trim()) {
+      setOpen(true);
+    }
+
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/api/admin/search_user_by_email', {
+          params: { email: query },
+          withCredentials: true
+        });
+
+        if (response.data) {
+          setSearchResults(response.data);
+          if (response.data.length > 0) {
+            setOpen(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching users:', error);
+        toast.error('Failed to search users');
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+  };
+
+  useEffect(() => {
+    if (value) {
+      setInputValue(value);
+      setSelectedUser({ email: value });
+    }
+  }, [value]);
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    setInputValue(user.email);
+    onChange(user);
+    setOpen(false);
+  };
+
+  return (
+    <div className="p-3 rounded-lg bg-card/40 backdrop-blur-xl border dark:border-white/10 transition-all hover:bg-card/60 cursor-pointer ">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <User className="h-3.5 w-3.5" />
+          <span className="text-sm">Assign to User</span>
+        </div>
+      </div>
+
+      {/* Direct approach without Popover */}
+      <div ref={wrapperRef} className="relative">
+        <div className="flex items-center justify-between w-[220px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search user email..."
+            className="w-full bg-transparent outline-none"
+            value={inputValue}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => inputValue.trim() && setOpen(true)}
+          />
+          <div
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(!open);
+              setTimeout(() => inputRef.current?.focus(), 0);
+            }}
+          >
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </div>
+        </div>
+
+        {/* Dropdown menu */}
+        {open && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 w-[220px] rounded-md border border-input bg-background shadow-md mt-1 overflow-hidden"
+          >
+            <div className="max-h-[300px] overflow-y-auto p-1">
+              {loading ? (
+                <div className="py-6 text-center">
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      className={`flex items-center px-2 py-1.5 text-sm rounded-sm cursor-pointer ${selectedUser?.email === user.email ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                        }`}
+                      onClick={() => handleSelectUser(user)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedUser?.email === user.email ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex flex-col w-full group">
+                        <span>{user.email}</span>
+                        <span className="text-xs text-muted-foreground max-h-0 overflow-hidden group-hover:max-h-10 transition-all duration-200">
+                          {user.firstName} {user.lastName}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-3 text-center text-sm text-muted-foreground">
+                  {inputValue ? "No users found" : "Type to search users"}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
