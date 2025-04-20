@@ -226,6 +226,20 @@ const Wallet = () => {
   //   });
   // };
 
+  const payPending = async (paymentId: string) => {
+    try {
+      const res = await axios.post("/api/payment/pay_pending",{
+        paymentId: paymentId,
+      })
+      if(res?.data){
+        window.location.href = res?.data?.redirectUrl
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
+  }
+
   const Counter = ({ createdAt }) => {
     const [timeLeft, setTimeLeft] = useState("");
 
@@ -395,6 +409,7 @@ const Wallet = () => {
                             size="sm"
                             style={{ padding: "5px" }}
                             title="UPI Only"
+                            onClick={() => payPending(p?._id)}
                           >
                             <QrCode className="h-4 w-4" />
                             <span className="text-xs">Pay</span>

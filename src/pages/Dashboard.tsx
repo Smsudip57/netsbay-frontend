@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/context/context";
+import ProfilePage from "./ProfilePage";
 import {
   Cpu,
   HardDrive,
@@ -320,6 +321,7 @@ const Dashboard = () => {
             <Route path="wallet" element={<Wallet />} />
             <Route path="toolkit" element={<Toolkit />} />
             <Route path="purchase-netcoins" element={<PurchaseNetcoins />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Routes>
         </div>
       </div>

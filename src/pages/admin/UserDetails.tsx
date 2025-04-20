@@ -8,6 +8,7 @@ import {
   FileText,
   ExternalLink,
   CircleCheck,
+  Download,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import axios from "axios";
+import { useAppContext } from "@/context/context";
 
 export interface Address {
   street: string;
@@ -76,27 +78,28 @@ const UserDetails = () => {
   const [gstType, setGstType] = useState("inclusive");
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<User | null>(null);
+  const { services, payment, generatePDF } = useAppContext();
 
   // Mock services data
-  const services = [
-    {
-      id: 1,
-      name: "Ubuntu Server",
-      type: "Linux-Ubuntu",
-      status: "running",
-      ip: "103.211.45.67",
-      serviceId: "S42342342",
-      expiryDate: "2024-12-31",
-      specs: {
-        cpu: "2 vCPU",
-        ram: "2 GB",
-        storage: "20 GB",
-      },
-    },
-    // ... Add more mock services as needed
-  ];
+  // const services = [
+  //   {
+  //     id: 1,
+  //     name: "Ubuntu Server",
+  //     type: "Linux-Ubuntu",
+  //     status: "running",
+  //     ip: "103.211.45.67",
+  //     serviceId: "S42342342",
+  //     expiryDate: "2024-12-31",
+  //     specs: {
+  //       cpu: "2 vCPU",
+  //       ram: "2 GB",
+  //       storage: "20 GB",
+  //     },
+  //   },
+  //   // ... Add more mock services as needed
+  // ];
 
-  // Mock recent invoices
+  // Mock Recent Invoices
   const recentInvoices = [
     {
       id: "INV-001",
@@ -162,7 +165,7 @@ const UserDetails = () => {
     }
   };
 
-  const handleNetcoinsAction = async(action: "add" | "deduct") => {
+  const handleNetcoinsAction = async (action: "add" | "deduct") => {
     if (!netcoinsAmount || !reason) {
       toast.error("Please fill in all fields");
       return;
@@ -270,11 +273,10 @@ const UserDetails = () => {
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Status</h3>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      user?.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
+                    className={`px-2 py-1 rounded-full text-xs ${user?.isActive
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}
                   >
                     {user?.isActive ? "Active" : "Inactive"}
                   </span>
@@ -396,7 +398,7 @@ const UserDetails = () => {
         </Card>
 
         {/* Manual Invoice Generation Section */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Generate Manual Invoice</CardTitle>
           </CardHeader>
@@ -439,7 +441,7 @@ const UserDetails = () => {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* User Services Section */}
         <Card>
@@ -447,7 +449,7 @@ const UserDetails = () => {
             <CardTitle>User Services</CardTitle>
           </CardHeader>
           <CardContent>
-            <ServiceListView services={[]} />
+            <ServiceListView services={services} />
             <div className="mt-4 flex justify-center">
               <div className="flex gap-2">
                 <Button
@@ -493,27 +495,34 @@ const UserDetails = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentInvoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.date}</TableCell>
-                    <TableCell>{invoice.amount} NC</TableCell>
+                {payment.map((invoice: any) => (
+                  <TableRow key={invoice?.invoiceId}>
+                    <TableCell className="font-medium">{invoice?.invoiceId ? invoice?.invoiceId : "No Invoice"}</TableCell>
+                    <TableCell>{getDate(invoice?.createdAt)}</TableCell>
+                    <TableCell>{invoice?.coinAmout} NC</TableCell>
                     <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          invoice.status === "Paid"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {invoice.status}
-                      </span>
+                      {invoice?.status === "Pending" ? (
+                        <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs">
+                          {invoice?.status}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">
+                          {invoice?.status}
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell>{invoice.description}</TableCell>
+                    <TableCell>{invoice?.paymentType !== "Cryptomous" ? <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => generatePDF(invoice)}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="sr-only">Download Invoice</span>
+                    </Button> : <span className="flex justify-left pl-4">-</span>}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

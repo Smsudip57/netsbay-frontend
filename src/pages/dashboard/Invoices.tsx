@@ -18,6 +18,20 @@ const Invoices = () => {
     useAppContext();
 
 
+  const payPending = async (paymentId: string) => {
+    try {
+      const res = await axios.post("/api/payment/pay_pending", {
+        paymentId: paymentId,
+      })
+      if (res?.data) {
+        window.location.href = res?.data?.redirectUrl
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
+  }
+
   useEffect(() => {
     const abortController = new AbortController();
     const signal = abortController.signal;
@@ -59,60 +73,60 @@ const Invoices = () => {
   };
 
 
-   const Counter = ({ createdAt }) => {
-      const [timeLeft, setTimeLeft] = useState("");
-      
-      useEffect(() => {
-        // Skip if no createdAt
-        if (!createdAt) {
-          setTimeLeft("--:--:--");
+  const Counter = ({ createdAt }) => {
+    const [timeLeft, setTimeLeft] = useState("");
+
+    useEffect(() => {
+      // Skip if no createdAt
+      if (!createdAt) {
+        setTimeLeft("--:--:--");
+        return;
+      }
+
+      // Convert createdAt to timestamp
+      const createdTime = new Date(createdAt).getTime();
+      // Calculate expiry time (createdAt + 1 hour)
+      const expiryTime = createdTime + (60 * 60 * 1000); // 1 hour in milliseconds
+
+      // Function to update the countdown
+      const updateTimer = () => {
+        const now = new Date().getTime();
+        const difference = expiryTime - now;
+
+        if (difference <= 0) {
+          // Timer expired
+          setTimeLeft("Expired");
+          clearInterval(interval);
           return;
         }
-        
-        // Convert createdAt to timestamp
-        const createdTime = new Date(createdAt).getTime();
-        // Calculate expiry time (createdAt + 1 hour)
-        const expiryTime = createdTime + (60 * 60 * 1000); // 1 hour in milliseconds
-        
-        // Function to update the countdown
-        const updateTimer = () => {
-          const now = new Date().getTime();
-          const difference = expiryTime - now;
-          
-          if (difference <= 0) {
-            // Timer expired
-            setTimeLeft("Expired");
-            clearInterval(interval);
-            return;
-          }
-          
-          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-          
-          const formattedMinutes = String(minutes).padStart(2, '0');
-          const formattedSeconds = String(seconds).padStart(2, '0');
-          
-          setTimeLeft(`${formattedMinutes}:${formattedSeconds}`);
-        };
-        
-        // Update timer immediately and then every second
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
-        
-        // Clean up interval on component unmount
-        return () => clearInterval(interval);
-      }, [createdAt]);
-      
-      return (
-        <p className="font-mono text-sm font-medium opacity-65" >
-          {timeLeft === "Expired" ? (
-            <span className="text-red-500">Expired</span>
-          ) : (
-            <span className="text-amber-600 dark:text-amber-500">{timeLeft}</span>
-          )}
-        </p>
-      );
-    };
+
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+
+        setTimeLeft(`${formattedMinutes}:${formattedSeconds}`);
+      };
+
+      // Update timer immediately and then every second
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+
+      // Clean up interval on component unmount
+      return () => clearInterval(interval);
+    }, [createdAt]);
+
+    return (
+      <p className="font-mono text-sm font-medium opacity-65" >
+        {timeLeft === "Expired" ? (
+          <span className="text-red-500">Expired</span>
+        ) : (
+          <span className="text-amber-600 dark:text-amber-500">{timeLeft}</span>
+        )}
+      </p>
+    );
+  };
 
   return (
     <main className="p-6 flex-1">
@@ -180,16 +194,17 @@ const Invoices = () => {
                         invoice?.status === "Pending" ? (
                           <div className="flex items-center justify-end gap-2">
                             <Counter createdAt={invoice?.createdAt} />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            style={{ padding: "5px" }}
-                            title="UPI Only"
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              style={{ padding: "5px" }}
+                              title="UPI Only"
+                              onClick={()=>payPending(invoice?._id)}
                             >
-                            <QrCode className="h-4 w-4" />
-                            <span className="text-xs">Pay</span>
-                          </Button>
-                            </div>
+                              <QrCode className="h-4 w-4" />
+                              <span className="text-xs">Pay</span>
+                            </Button>
+                          </div>
                         ) : (
                           <Button
                             variant="ghost"

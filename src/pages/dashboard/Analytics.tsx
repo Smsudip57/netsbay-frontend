@@ -89,7 +89,7 @@ const Analytics = () => {
         </div>
 
         <div className="grid gap-6 mb-8">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {/* <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="hover:shadow-lg transition-all duration-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -149,7 +149,7 @@ const Analytics = () => {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           <Tabs defaultValue="announcements" className="space-y-4">
             <TabsList className="w-full lg:w-auto">

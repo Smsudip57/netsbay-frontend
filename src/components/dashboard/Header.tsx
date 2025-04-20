@@ -15,10 +15,12 @@ import {
   Trash2,
   Menu,
   WalletIcon,
+  Crown,
+  LayoutDashboard,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSidebar } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,12 +32,14 @@ import {
 import { useEffect, useState } from "react";
 import { useAppContext } from "@/context/context";
 
+
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar, state } = useSidebar();
   const { notifications, setNotifications } = useAppContext();
   const { loading, user, logout, socket } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
+  const pathnam = useLocation().pathname;
 
   const clearNotification = (id: number) => {
     setNotifications(
@@ -156,7 +160,7 @@ export function Header() {
               >
                 <Bell className="h-5 w-5 text-icon" />
                 {notifications?.length - seenCount > 0 && (
-                  <span className="absolute top-1 right-0 text-[10px] p-[4px] leading-[4px] rounded-full bg-state-danger-light dark:bg-state-danger-dark">{notifications?.length - seenCount}</span>
+                  <span className="absolute top-1 right-0 text-[10px] p-[4px] leading-[4px] rounded-full bg-state-danger-light dark:bg-state-danger-dark text-white dark:text-white">{notifications?.length - seenCount}</span>
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -199,7 +203,7 @@ export function Header() {
                     No notifications
                   </div>
                 ) : (
-                  notifications?.map((notification, index:number) => (
+                  notifications?.map((notification, index: number) => (
                     <DropdownMenuItem
                       key={`${index}`}
                       className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-500/5 dark:hover:bg-gray-800/50"
@@ -244,7 +248,7 @@ export function Header() {
                 <AvatarImage
                   src={
                     user?.profile?.avatarUrl !==
-                    "https://default-avatar-url.com"
+                      "https://default-avatar-url.com"
                       ? user?.profile?.avatarUrl
                       : "https://github.com/shadcn.png"
                   }
@@ -254,14 +258,22 @@ export function Header() {
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 z-[100]">
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator /> */}
+              {user?.role === "admin" && <DropdownMenuItem className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50">
+              <Link to={pathnam.startsWith("/dashboard")?"/admin":"/dashboard" }className="flex items-center w-full">
+                {!pathnam.startsWith("/dashboard")?<LayoutDashboard className="mr-2 h-4 w-4"/>:<Crown className="mr-2 h-4 w-4" />}
+                {pathnam.startsWith("/dashboard")?<span>Admin Dashboard</span>:<span>Dashboard</span>}
+              </Link>
+              </DropdownMenuItem>}
+              {user?.role !== "admin"&& pathnam.startsWith("/dashboard") && <DropdownMenuItem className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50">
+                <Crown className="mr-2 h-4 w-4" />
+                <span>Admin Dashboard</span>
+              </DropdownMenuItem>}
               <DropdownMenuItem className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50">
-                <Key className="mr-2 h-4 w-4" />
-                <span>Change Password</span>
+                <Link to={user?.role === "admin" ? "/admin/profile" : "/dashboard/profile"} className="flex items-center w-full">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
