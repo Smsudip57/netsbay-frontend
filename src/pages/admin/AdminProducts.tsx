@@ -49,6 +49,7 @@ interface ServiceVM {
   price: number;
   Stock?: boolean;
   createdAt?: Date;
+  maxPendingService: number;
 }
 
 const AdminProducts = () => {
@@ -200,7 +201,9 @@ const AdminProducts = () => {
         );
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to delete service.");
+      toast.error(
+        error?.response?.data?.message || "Failed to delete service."
+      );
     }
   };
 
@@ -316,21 +319,25 @@ const AdminProducts = () => {
           {filteredServices.map((service) => (
             <Card key={service?.productId} className="bg-card border-border">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     {service?.serviceType.includes("RDP") ? (
                       <Monitor className="h-5 w-5 text-primary" />
                     ) : (
                       <Package className="h-5 w-5 text-primary" />
                     )}
-                    <CardTitle className="text-lg">{service.productName}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {service.productName}
+                    </CardTitle>
                   </div>
-                  <Switch
-                    checked={serviceStates[service?.productId]}
-                    onCheckedChange={() =>
-                      handleToggleService(service?.productId)
-                    }
-                  />
+                  <div className=" flex flex-col gap-2 items-start">
+                    <Switch
+                      checked={serviceStates[service?.productId]}
+                      onCheckedChange={() =>
+                        handleToggleService(service?.productId)
+                      }
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <Hash className="h-4 w-4 text-muted-foreground" />
@@ -338,11 +345,14 @@ const AdminProducts = () => {
                     {service?.productId}
                   </CardDescription>
                 </div>
+                <div className="flex items-center justify-between">
+
                 <div className="mt-2 flex items-center gap-2">
                   <Network className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">
                     IP Set: {service.ipSet}
                   </span>
+                </div>    <p className="flex gap-1 border px-1 rounded-sm items-center text-primary">P : <span className="text-sm text-black dark:text-white"> {service?.maxPendingService}</span></p>
                 </div>
               </CardHeader>
               <CardContent>
@@ -366,9 +376,7 @@ const AdminProducts = () => {
                     </div>
                     <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md">
                       <FolderCode className="h-4 w-4 text-primary" />
-                      <span className="text-sm">
-                        {service?.Os}
-                      </span>
+                      <span className="text-sm">{service?.Os}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-border">

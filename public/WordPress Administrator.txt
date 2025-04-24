@@ -1,0 +1,62 @@
+BlueHost login & Cpanel
+-Domain: netbay.in
+-user: netbayin
+-email: azimulhasanrocks@gmail.com
+-password: D@Arc*9000salads
+-ipAddress: 162.240.155.133
+-Website dashboard URL: https://my.bluehost.in/hosting/app#/ 
+
+TechnoConnect Website
+- Domain: technoconnect.io
+- Cpanel username: Technoconnect
+- Cpanel password: XshAWbk*TdZjDZs4
+- Email: technoconnect@technoconnect.io
+	
+Main Website VPS
+-rootUser: root
+-rootPassword: 5mck3RSH>?K
+-rootPassPhrase: B3rrier @bulic 26 uncalm8
+
+WordPress Administrator
+-username: admin_sg6x6ef7
+-Password: 5e%0X&O?0HKOiKCa
+-Email: admin@netbay.in
+
+WHMCS
+-AccessRoute: https://netbay.in/billing/whmcsadmin/
+-Whmcs-bridgeRoute: https://netbay.in/whmcs-bridge/
+-Admin Username: admin_zarn
+-Admin Password: wR92$e@Zy[Cz9956
+
+WHMCS BILLing website 
+-email: azimulhasanrocks@gmail.com
+-password: ZiV0gqT=3bb!$Tzp
+
+Modules Garden Billing Login Proxmox Whmcs addon
+-email : azimulhasan9876@gmail.com
+-password : Q1w_yte3064*yCfth
+
+Proxmox billing website
+-email: azimulhasanrocks@gmail.com
+-password: cZrcJ*RvuHOjf6ca
+
+Emails - Netbay.in
+- support@netbay.in : W*OQ!(@q]]Q^RL[h
+- dmarcreports@netbay.in : T8sp@5*0NtiJ
+- billing@netbay.in : BU5RJ*iH$P%q3t#g
+- test@netbay.in : eZ}fmw@QS$E&
+
+Emails - Technoconnect.io
+- admin@technoconnect.io : VE*El}A&iX!S?u{1
+- support@technoconnect.io : G-O46PbRlS[OV[Ck
+
+Email Accounts on Netbay
+test@netbay.in : h|A!6%SZui!d+5kD
+
+Proxmox
+root
+Techno@107#23
+
+P#MNagDqg,s56qSR
+
+

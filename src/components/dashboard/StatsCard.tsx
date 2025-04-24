@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
 
 interface StatsCardProps {
   title: string;
-  value: string;
+  value: string | React.ReactNode;
   icon: React.ReactNode;
-  description?: string;
+  description?: string | React.ReactNode;
   variant?: 'default' | 'info' | 'warning' | 'danger' | 'success';
 }
 

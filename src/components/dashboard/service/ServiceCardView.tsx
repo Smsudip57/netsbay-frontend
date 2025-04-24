@@ -77,6 +77,27 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
     });
   }
 
+  const getExpiryText = (expiryDate: Date) => {
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    
+    // Calculate days difference
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 5 && diffDays > 0) {
+      return (
+        <span className="text-amber-500 font-medium">
+          Expires soon ({diffDays} {diffDays === 1 ? 'day' : 'days'})
+        </span>
+      );
+    } else if (diffDays <= 0) {
+      return <span className="text-red-500 font-medium">Expired</span>;
+    } else {
+      return getDate(expiryDate);
+    }
+  };
+
   return (
     services.length > 0 ? (<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {services.map((service) => (
@@ -98,7 +119,7 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(service.status)}
+                {(!service?.ipAddress || !service?.password || !service?.username)? getStatusIcon(""):getStatusIcon(service.status)}  {(!service?.ipAddress || !service?.password || !service?.username)? "Pending":service?.status?.split(" ")[0]?.charAt(0).toUpperCase() + service?.status?.split(" ")[0]?.slice(1)} 
                 </div>
               </div>
             </CardHeader>
@@ -137,7 +158,7 @@ export const ServiceCardView = ({ services }: ServiceCardViewProps) => {
                       <span className="text-sm">Expires</span>
                     </div>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {getDate(service.expiryDate)}
+                    {service.expiryDate && getExpiryText(service.expiryDate)}
                     </p>
                   </div>
                 </div>

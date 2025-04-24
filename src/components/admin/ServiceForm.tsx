@@ -212,7 +212,7 @@ export function ServiceForm() {
 
   const onSubmit = async (data: FormValues) => {
     console.log(data);
-    let reqData = [];
+    const reqData = [];
     if (isBulkMode && data.bulkData) {
       const lines = data.bulkData.split("\n").filter((line) => line.trim());
       lines.forEach((line) => {
@@ -244,7 +244,11 @@ export function ServiceForm() {
       });
       if (res?.data) {
         toast.success(res?.data?.message);
-        navigate("/admin/services");
+        if (res?.data?.services?.length > 1) {
+          navigate("/admin/services");
+        } else {
+          navigate(`/admin/services/${res?.data?.services[0]?.serviceId}`);
+        }
       }
     } catch (error) {
       toast.error("Failed to add service.");
@@ -479,7 +483,10 @@ export function ServiceForm() {
                         </FormControl>
                         <SelectContent>
                           {providers.map((provider) => (
-                            <SelectItem key={provider?._id} value={provider?.value}>
+                            <SelectItem
+                              key={provider?._id}
+                              value={provider?.value}
+                            >
                               {provider?.value}
                             </SelectItem>
                           ))}

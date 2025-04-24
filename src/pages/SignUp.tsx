@@ -132,7 +132,17 @@ const SignUp = () => {
   const [countdown, setCountdown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [sendCodeLoading, setSendCodeLoading] = useState(false);
-  const { setUser, setLoading } = useAppContext();
+  const { setUser, setLoading, user, loading: userload } = useAppContext();
+
+  useEffect(() => {
+    if (user && !userload) {
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, navigate, userload]);
 
   const handleNext = async () => {
     let fieldsToValidate = [];

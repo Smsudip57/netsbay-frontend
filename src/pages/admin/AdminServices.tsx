@@ -207,9 +207,7 @@ const AdminServices = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    navigate(`/admin/services/${service?.serviceId}`)
-                  }
+                  onClick={() => window.open(`/admin/services/${service?.serviceId}`, '_blank')}
                 >
                   Edit
                 </Button>
@@ -287,9 +285,7 @@ const AdminServices = () => {
                   variant="outline"
                   size="sm"
                   className="flex-1"
-                  onClick={() =>
-                    navigate(`/admin/services/${service?.serviceId}`)
-                  }
+                  onClick={() => window.open(`/admin/services/${service?.serviceId}`, '_blank')}
                 >
                   Edit
                 </Button>

@@ -25,7 +25,20 @@ const getActionIcon = (type: string) => {
     case "Service":
       return Server;
     default:
-      return ()=><></>;
+      return () => <></>;
+  }
+};
+
+const getActionColor = (type: string) => {
+  switch (type) {
+    case "Rebuild":
+      return "bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30";
+    case "Renew":
+      return "bg-green-50 dark:bg-green-500/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/30";
+    case "Service":
+      return "bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30";
+    default:
+      return "bg-gray-50 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30";
   }
 };
 
@@ -72,11 +85,17 @@ const RequestCard = ({ request, isAction = false }: any) => {
                 {getDate(request?.createdAt)}
               </span>
             </div>
-            
-              <div className="flex items-center gap-2 px-3 py-1 bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 rounded-full">
-                <ActionIcon className="h-4 w-4" />
-                <span className="text-xs font-medium">{request?.requestType}</span>
-              </div>
+
+            <div
+              className={`flex items-center gap-2 px-3 py-1 ${getActionColor(
+                request?.requestType
+              )} rounded-full`}
+            >
+              <ActionIcon className="h-4 w-4" />
+              <span className="text-xs font-medium">
+                {request?.requestType}
+              </span>
+            </div>
           </div>
           <div className="flex items-center justify-between pt-2 border-t dark:border-slate-700">
             <div className="flex items-center gap-2">
@@ -125,7 +144,7 @@ const AdminRequests = () => {
       abortController.abort();
     };
   }, []);
-console.log(requests)
+  
   const prendingRequests = requests?.filter(
     (request: any) => request.requestType === "Service"
   );
@@ -156,10 +175,7 @@ console.log(requests)
 
             <TabsContent value="actions" className="space-y-4">
               {actionRequests?.map((request: any) => (
-                <RequestCard
-                  key={request._id}
-                  request={request}
-                />
+                <RequestCard key={request._id} request={request} />
               ))}
             </TabsContent>
           </Tabs>

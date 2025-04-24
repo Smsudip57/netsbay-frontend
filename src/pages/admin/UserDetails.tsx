@@ -78,7 +78,8 @@ const UserDetails = () => {
   const [gstType, setGstType] = useState("inclusive");
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<User | null>(null);
-  const { services, payment, generatePDF } = useAppContext();
+  const { services, payment, generatePDF, transactions } = useAppContext();
+  const ITEMS_PER_PAGE = 5;
 
   // Mock services data
   // const services = [
@@ -273,10 +274,11 @@ const UserDetails = () => {
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Status</h3>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${user?.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                      }`}
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      user?.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
                   >
                     {user?.isActive ? "Active" : "Inactive"}
                   </span>
@@ -449,30 +451,64 @@ const UserDetails = () => {
             <CardTitle>User Services</CardTitle>
           </CardHeader>
           <CardContent>
-            <ServiceListView services={services} />
-            <div className="mt-4 flex justify-center">
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <Button variant="outline" disabled>
-                  Page {currentPage}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  disabled={services.length < 10}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            {/* Get filtered services */}
+            {(() => {
+              const filteredServices =
+                services?.filter(
+                  (item: any) => item?.relatedUser === user?._id
+                ) || [];
+              const totalPages = Math.max(
+                1,
+                Math.ceil(filteredServices.length / ITEMS_PER_PAGE)
+              );
+
+              // Get paginated services for current page
+              const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+              const paginatedServices = filteredServices.slice(
+                startIndex,
+                startIndex + ITEMS_PER_PAGE
+              );
+
+              return (
+                <>
+                  <ServiceListView services={paginatedServices} />
+
+                  {filteredServices.length > 0 ? (
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <Button variant="outline" disabled>
+                          Page {currentPage} of {totalPages}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages)
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-gray-500">
+                      No services found for this user
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
 
@@ -480,7 +516,18 @@ const UserDetails = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recent Invoices</CardTitle>
-            <Link to={`/admin/users/${id}/invoices`}>
+            <Link
+              to={`/admin/users/${id}/invoices`}
+              state={{
+                userData: user,
+                invoices: payment?.filter(
+                  (item) => item?.user?._id === user?._id
+                ),
+                transactions: transactions?.filter(
+                  (item) => item?.user === user?._id
+                ),
+              }}
+            >
               <Button variant="outline">
                 View All
                 <ExternalLink className="h-4 w-4 ml-2" />
@@ -499,32 +546,42 @@ const UserDetails = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payment.map((invoice: any) => (
-                  <TableRow key={invoice?.invoiceId}>
-                    <TableCell className="font-medium">{invoice?.invoiceId ? invoice?.invoiceId : "No Invoice"}</TableCell>
-                    <TableCell>{getDate(invoice?.createdAt)}</TableCell>
-                    <TableCell>{invoice?.coinAmout} NC</TableCell>
-                    <TableCell>
-                      {invoice?.status === "Pending" ? (
-                        <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs">
-                          {invoice?.status}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">
-                          {invoice?.status}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>{invoice?.paymentType !== "Cryptomous" ? <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => generatePDF(invoice)}
-                    >
-                      <Download className="h-4 w-4" />
-                      <span className="sr-only">Download Invoice</span>
-                    </Button> : <span className="flex justify-left pl-4">-</span>}</TableCell>
-                  </TableRow>
-                ))}
+                {payment
+                  ?.filter((item) => item?.user?._id === user?._id)?.slice(0,5)
+                  .map((invoice: any) => (
+                    <TableRow key={invoice?.invoiceId}>
+                      <TableCell className="font-medium">
+                        {invoice?.invoiceId ? invoice?.invoiceId : "No Invoice"}
+                      </TableCell>
+                      <TableCell>{getDate(invoice?.createdAt)}</TableCell>
+                      <TableCell>{invoice?.coinAmout} NC</TableCell>
+                      <TableCell>
+                        {invoice?.status === "Pending" ? (
+                          <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs">
+                            {invoice?.status}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">
+                            {invoice?.status}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {invoice?.paymentType !== "Cryptomous" ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => generatePDF(invoice)}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">Download Invoice</span>
+                          </Button>
+                        ) : (
+                          <span className="flex justify-left pl-4">-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </CardContent>

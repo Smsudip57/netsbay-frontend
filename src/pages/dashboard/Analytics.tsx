@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-import { AnyAaaaRecord } from "node:dns";
+import { useAppContext } from "@/context/context";
 
 const getPriorityColor = (date: Date, status: boolean) => {
   const currentDate = new Date();
@@ -40,7 +40,7 @@ const getPriorityColor = (date: Date, status: boolean) => {
 };
 
 const Analytics = () => {
-  const [announcements, setannouncements] = useState<any>([]);
+  const { announcements, setannouncements } = useAppContext();
   const [currentPage, setCurrentPage] = useState(1);
   const announcementsPerPage = 5;
 
@@ -61,11 +61,14 @@ const Analytics = () => {
           withCredentials: true,
         });
         if (res?.data) {
+          console.log(res?.data);
           setannouncements(res?.data);
         }
-      } catch (error) { }
+      } catch (error) {console.log(error);}
     };
-    fetchData();
+    // if (!announcements?.length) {
+      fetchData();
+    // }
   }, []);
 
   const getDate = (date: string) => {
@@ -180,7 +183,8 @@ const Analytics = () => {
                     </div>
                     <span
                       className={`text-xs px-3 py-1 rounded-full ${getPriorityColor(
-                        announcement?.createdAt, false
+                        announcement?.createdAt,
+                        false
                       )} `}
                     >
                       {getPriorityColor(announcement?.createdAt, true)}

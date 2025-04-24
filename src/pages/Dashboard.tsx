@@ -49,10 +49,38 @@ const mockTransactions = [
 ];
 
 const DashboardHome = () => {
-  const { user, payment, transactions, getDate, services } = useAppContext();
+  const {
+    user,
+    payment,
+    transactions,
+    getDate,
+    services,
+    announcements: announcement,
+  } = useAppContext();
 
-  
+  const getPriorityColor = (date: Date, status: boolean) => {
+    const currentDate = new Date();
+    const givenDate = new Date(date);
+    const diffTime = currentDate.getTime() - givenDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+    // Determine priority based on date age
+    let priority: string;
+    if (diffDays < 5) {
+      priority = "Latest";
+    }
+    if (status) {
+      return priority;
+    }
+    switch (priority) {
+      case "Latest":
+        return "bg-yellow-50 border dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30";
+      // case "medium":
+      // return "bg-red-50 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30";
+      // default:
+      //   return "bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/30";
+    }
+  };
   return (
     <main className="p-6 flex-1">
       <div className="max-w-[1400px] mx-auto space-y-6">
@@ -78,11 +106,24 @@ const DashboardHome = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StatsCard
               title="Active Services"
-              value={services?.length}
+              value={
+                services?.filter(
+                  (service: any) =>
+                    service?.status === "active" &&
+                    service?.ipAddress &&
+                    service?.password &&
+                    service?.username
+                )?.length
+              }
               icon={<Server className="h-4 w-4" />}
               description={`${
-                services?.filter((service: any) => service?.status === "active")
-                  ?.length
+                services?.filter(
+                  (service: any) =>
+                    service?.status === "active" &&
+                    service?.ipAddress &&
+                    service?.password &&
+                    service?.username
+                )?.length
               } services running`}
               variant="default"
             />
@@ -92,153 +133,222 @@ const DashboardHome = () => {
               icon={<WalletIcon className="h-4 w-4" />}
               description={`Last topped up ${(() => {
                 const data = payment?.filter(
-                  (p: any) => p?.status === "Success"
+                  (p: any) => p?.status === "Success" && p?.user?._id === user?._id
                 )?.[0]?.createdAt;
                 return data ? moment(data).fromNow() : "never";
               })()}`}
               variant="default"
             />
             <StatsCard
-              title="Resource Usage"
-              value="75%"
+              title="Total Sales"
+              value={`${Math.abs(transactions?.filter(
+                (transaction: any) => transaction?.amount < 0 && transaction?.user === user?._id
+              )?.reduce((acc: number, transaction: any) => acc + transaction?.amount, 0) || 0)} NC`}
               icon={<Activity className="h-4 w-4" />}
-              description="Across all services"
+              description="Across all transactions"
               variant="default"
             />
             <StatsCard
               title="Total Storage"
               value={`${services
-                ?.filter((service: any) => service?.status === "active")
+                ?.filter((service: any) => service?.status === "active" &&
+                service?.ipAddress &&
+                service?.password &&
+                service?.username)
                 ?.reduce(
                   (acc: number, service: any) =>
                     acc + service?.relatedProduct?.storage,
                   0
                 )} GB`}
               icon={<HardDrive className="h-4 w-4" />}
-              description="250 GB available"
+              description="Across all active services"
               variant="default"
             />
           </div>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
+        <div>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
               <CardTitle className="text-lg font-medium">
-                Active Services
+                Latest Announcement
               </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link
-                  to="/dashboard/services"
-                  className="flex items-center gap-1"
-                >
-                  View All
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
             </CardHeader>
             <CardContent>
-            <div
-                className="space-y-4 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent "
-                style={{
-                  scrollbarWidth: "thin",
-                  msOverflowStyle: "none",
-                  scrollbarColor: "#3676E0 transparent",
-                }}
+              <Card
+                key={announcement?.[0]?._id}
+                className="hover:shadow-lg transition-all duration-200"
               >
-                {services
-                  ?.filter((service: any) => {
-                    const expiryTimestamp =
-                      typeof service?.expiryDate === "string"
-                        ? new Date(service.expiryDate).getTime()
-                        : service?.expiryDate;
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="text-base font-semibold">
+                      {announcement?.[0]?.subject}
+                    </CardTitle>
+                    <div className="text-sm text-muted-foreground">
+                      {getDate(announcement?.[0]?.createdAt)}
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full ${getPriorityColor(
+                      announcement?.[0]?.createdAt,
+                      false
+                    )} `}
+                  >
+                    {getPriorityColor(announcement?.[0]?.createdAt, true)}
+                  </span>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    {announcement?.[0]?.body}
+                  </p>
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-                    return expiryTimestamp > Date.now();
-                  })
-                  ?.slice(0, 10)
-                  ?.map((service: any) => (
+        <div
+          className={`grid gap-6   ${
+            services?.filter((service: any) => {
+              const expiryTimestamp =
+                typeof service?.expiryDate === "string"
+                  ? new Date(service.expiryDate).getTime()
+                  : service?.expiryDate;
+
+              return expiryTimestamp > Date.now();
+            })?.length > 0 && transactions?.length > 0
+              ? "md:grid-cols-2"
+              : ""
+          }`}
+        >
+          {services?.filter((service: any) => {
+            const expiryTimestamp =
+              typeof service?.expiryDate === "string"
+                ? new Date(service.expiryDate).getTime()
+                : service?.expiryDate;
+
+            return expiryTimestamp > Date.now();
+          })?.length > 0 && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-medium">
+                  Active Services
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link
+                    to="/dashboard/services"
+                    className="flex items-center gap-1"
+                  >
+                    View All
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className="space-y-4 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent "
+                  style={{
+                    scrollbarWidth: "thin",
+                    msOverflowStyle: "none",
+                    scrollbarColor: "#3676E0 transparent",
+                  }}
+                >
+                  {services
+                    ?.filter((service: any) => {
+                      const expiryTimestamp =
+                        typeof service?.expiryDate === "string"
+                          ? new Date(service.expiryDate).getTime()
+                          : service?.expiryDate;
+
+                      return expiryTimestamp > Date.now();
+                    })
+                    ?.slice(0, 10)
+                    ?.map((service: any) => (
+                      <div
+                        key={service._id}
+                        className="flex items-center justify-between p-3 bg-accent/50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Server className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">
+                              {service?.serviceNickname}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {service?.relatedProduct?.Os}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          variant={
+                            service?.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {service?.status}
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {transactions?.length > 0 && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-medium">
+                  Recent Activity
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link
+                    to="/dashboard/transactions"
+                    className="flex items-center gap-1"
+                  >
+                    View All
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className="space-y-4 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scrollbar-thumb-red-500/50"
+                  style={{
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "#3676E0 transparent",
+                    msOverflowStyle: "none",
+                  }}
+                >
+                  {transactions?.slice(0, 10)?.map((transaction: any) => (
                     <div
-                      key={service.id}
+                      key={transaction?.transactionId}
                       className="flex items-center justify-between p-3 bg-accent/50 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <Server className="h-5 w-5 text-muted-foreground" />
+                        <Receipt className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <p className="font-medium">
-                            {service?.serviceNickname}
+                            {transaction?.description}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {service?.relatedProduct?.Os}
+                            {getDate(transaction?.createdAt)}
                           </p>
                         </div>
                       </div>
-                      <Badge
-                        variant={
-                          service?.status === "active" ? "default" : "secondary"
+                      <span
+                        className={
+                          transaction?.amount < 0
+                            ? "text-red-500"
+                            : "text-green-500"
                         }
                       >
-                        {service?.status}
-                      </Badge>
+                        {transaction?.amount}
+                      </span>
                     </div>
                   ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">
-                Recent Activity
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link
-                  to="/dashboard/transactions"
-                  className="flex items-center gap-1"
-                >
-                  View All
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div
-                className="space-y-4 max-h-[240px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent scrollbar-thumb-red-500/50"
-                style={{
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "#3676E0 transparent",
-                  msOverflowStyle: "none",
-                }}
-              >
-                {transactions?.slice(0, 10)?.map((transaction: any) => (
-                  <div
-                    key={transaction?.transactionId}
-                    className="flex items-center justify-between p-3 bg-accent/50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Receipt className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">
-                          {transaction?.description}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {getDate(transaction?.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={
-                        transaction?.amount < 0
-                          ? "text-red-500"
-                          : "text-green-500"
-                      }
-                    >
-                      {transaction?.amount}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <Card>

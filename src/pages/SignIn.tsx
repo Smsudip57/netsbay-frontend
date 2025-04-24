@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,7 +48,7 @@ const SignIn = () => {
       password: "",
     },
   });
-  const { setUser, setLoading: userloading } = useAppContext();
+  const { setUser, setLoading: userloading, loading:userload, user } = useAppContext();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -57,6 +57,17 @@ const SignIn = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    if(user && !userload) {
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, navigate, userload]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });

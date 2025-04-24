@@ -27,8 +27,9 @@ import Refund from "./pages/Refund";
 import PaymentStatus from "./pages/PaymentStatus";
 import Test from "./pages/dashboard/test";
 import axios from "axios";
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+import { HelmetProvider } from "react-helmet-async";
 import { useAppContext } from "@/context/context";
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const DialogComp = () => {
   const {
@@ -45,8 +46,8 @@ const DialogComp = () => {
         <DialogHeader>
           <DialogTitle>Confirm {dialogInfo?.title}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to {dialogInfo?.message}? This action
-            cannot be undone.
+            Are you sure you want to {dialogInfo?.message}? This action cannot
+            be undone.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2 mt-4">
@@ -67,7 +68,7 @@ const DialogComp = () => {
           <Button
             onClick={() => {
               if (handleRebuildRequest) {
-                handleRebuildRequest(); 
+                handleRebuildRequest();
               }
               setHandleRebuildRequest(() => () => {});
               setShowRebuildDialog(false);
@@ -83,33 +84,35 @@ const DialogComp = () => {
 
 const App = () => {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AppProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Marketing />} />
-              <Route path="/dashboard/*" element={<Dashboard />} />
-              <Route path="/admin/*" element={<AdminDashboard />} />
-              <Route path="/template" element={<Template />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/email-verified" element={<EmailVerified />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/refund" element={<Refund />} />
-              <Route path="/payment/status" element={<PaymentStatus />} />
-              <Route path="/test" element={<Test />} />
-            </Routes>
-            <DialogComp />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AppProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AppProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Marketing />} />
+                <Route path="/dashboard/*" element={<Dashboard />} />
+                <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/template" element={<Template />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/email-verified" element={<EmailVerified />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/refund" element={<Refund />} />
+                <Route path="/payment/status" element={<PaymentStatus />} />
+                <Route path="/test" element={<Test />} />
+              </Routes>
+              <DialogComp />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AppProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 };
 

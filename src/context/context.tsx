@@ -66,6 +66,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [userRequests, setUserRequests] = useState();
   const [showRebuildDialog, setShowRebuildDialog] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [announcements, setannouncements] = useState<any>([]);
   const [handleRebuildRequest, setHandleRebuildRequest] = useState(
     () => () => {}
   );
@@ -170,6 +171,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (services?.length === 0) {
       fetchServices();
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/api/user/announcements", {
+          withCredentials: true,
+        });
+        if (res?.data) {
+          setannouncements(res?.data);
+        }
+      } catch (error) {console.log(error);}
+    };
+    // if (!announcements?.length) {
+      fetchData();
+    // }
   }, []);
 
   useEffect(() => {
@@ -432,6 +449,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         socket,
         userRequests,
         setUserRequests,
+        announcements,
+        setannouncements,
       }}
     >
       {children}

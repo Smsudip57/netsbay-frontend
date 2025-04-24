@@ -67,7 +67,7 @@ const Services = () => {
   const [mockServices, setMockServices] = useState<IService[]>([]);
   const [ipSetFilter, setIpSetFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [viewType, setViewType] = useState<"list" | "cards">("list");
+  const [viewType, setViewType] = useState<"list" | "cards">("cards");
   const [ipSetList, setIpSetList] = useState<string[]>([]);
   const [typeList, setTypeList] = useState<string[]>([]);
   const { services } = useAppContext();
