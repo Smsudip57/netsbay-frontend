@@ -377,7 +377,7 @@ const DashboardHome = () => {
           <h2 className="text-xl sm:text-2xl font-bold">Sales Analytics</h2>
           <div className="flex items-center text-sm text-muted-foreground">
             <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span> Internal
-            <span className="inline-block w-3 h-3 bg-purple-500 rounded-full ml-3 mr-1"></span> Exclusive
+            <span className="inline-block w-3 h-3 bg-purple-500 rounded-full ml-3 mr-1"></span> External
           </div>
         </div>
 
@@ -396,7 +396,7 @@ const DashboardHome = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                    <span className="text-sm font-medium">Exclusive:</span>
+                    <span className="text-sm font-medium">External:</span>
                   </div>
                   <span className="font-bold">{exclusiveTodayCount}</span>
                 </div>
@@ -438,7 +438,7 @@ const DashboardHome = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                    <span className="text-sm font-medium">Exclusive:</span>
+                    <span className="text-sm font-medium">External:</span>
                   </div>
                   <span className="font-bold">{exclusiveMonthCount}</span>
                 </div>
@@ -479,7 +479,7 @@ const DashboardHome = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                    <span className="text-sm font-medium">Exclusive:</span>
+                    <span className="text-sm font-medium">External:</span>
                   </div>
                   <span className="font-bold">{exclusiveYearCount}</span>
                 </div>
