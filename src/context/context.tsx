@@ -182,10 +182,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (res?.data) {
           setannouncements(res?.data);
         }
-      } catch (error) {console.log(error);}
+      } catch (error) {
+        console.log(error);
+      }
     };
     // if (!announcements?.length) {
-      fetchData();
+    fetchData();
     // }
   }, []);
 
@@ -232,24 +234,47 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const generatePDF = async (payment: any) => {
     try {
-      // await uploadToExcel();
+      const invoiceData = {
+        companyName: "TECHNOCONNECT IT SOLUTIONS PVT LTD",
+        companyAddress:
+          "1934 Vishal Vihar Dubagga, Thakurganj, Lucknow, Uttar Pradesh, 226003",
+        taxId: "09AAKCT2618Q1ZM",
+        clientName: "",
+        clientAddress: "",
+        invoiceNumber: "1",
+        invoiceDate: "",
+        dueDate: "",
+        gstType: "Inclusive",
+        state: "UP",
+        items: [],
+        discount: 0,
+        subTotal: 0,
+        tax: 0,
+        total: 0,
+        transactions: [],
+        pdfGeneratedDate: new Date().toLocaleDateString(),
+      };
       const doc = new jsPDF();
-      const imgSrc = "./logo.jpeg";
-      const paidSrc = "./paid.png";
+      const imgSrc = `${window.location.origin}/favicon-96x96.png`;
+      const paidSrc = `${window.location.origin}/paidlogo.jpg`;
 
-      doc.addImage(imgSrc, "JPEG", 15, 10, 72, 30);
+      doc.addImage(imgSrc, "JPEG", 15, 10, 25, 25);
       doc.addImage(paidSrc, "PNG", 160, 0, 50, 37.5);
-
+      doc.setFontSize(28);
+      doc.setFont("helvetica", "bold"); 
+      doc.setTextColor(18, 28, 122);
+      doc.text("NETBAY", 44, 25);
       const x = 20;
+      // Adding company information next to the logo
       doc.setFont("times-new-roman");
       doc.setFontSize(14);
-      doc.text(
-        user?.organizationName ? `Company: ${user?.organizationName}` : "",
-        96,
-        15 + x
-      );
+      //black
+      doc.setTextColor(0, 0, 0);
+      doc.text(invoiceData.companyName, 96, 15 + x);
       doc.setFontSize(8);
-      doc.text(user?.gstNumber ? `GSTIN: ${user?.gstNumber}` : "", 159, 25 + x);
+      doc.text(invoiceData.companyAddress, 110, 20 + x);
+      doc.text(`GSTIN: ${invoiceData.taxId}`, 159, 25 + x);
+
       doc.setFillColor(220, 220, 220);
       doc.rect(15, 30 + x, 180, 25, "F");
       doc.setTextColor(20, 20, 20);

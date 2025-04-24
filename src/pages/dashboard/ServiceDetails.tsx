@@ -375,7 +375,7 @@ const ServiceDetails = () => {
                         className="text-sm font-medium text-blue-500 truncate"
                         type="text"
                         placeholder={`Enter vm id`}
-                        value={serviceDetails?.vmID}
+                        value={Change?.vmID}
                         onChange={(e) =>
                           setChange({ ...Change, vmID: e.target.value })
                         }
@@ -396,7 +396,7 @@ const ServiceDetails = () => {
                         className="text-sm font-medium text-blue-500 truncate"
                         type="text"
                         placeholder={`Enter external hash`}
-                        value={serviceDetails?.EXTRLhash}
+                        value={Change?.EXTRLhash}
                         onChange={(e) =>
                           setChange({ ...Change, EXTRLhash: e.target.value })
                         }
@@ -435,7 +435,7 @@ const ServiceDetails = () => {
                           key={plan?.productId}
                           value={plan.productId}
                         >
-                          {plan?.productName} • {plan?.cpu}C / {plan?.ram}GB / {plan?.storage}GB
+                          {plan?.productName} • {plan?.cpu}C / {plan?.ram}GB / {plan?.storage}GB • {plan?.ipSet}  • {plan?.serviceType}  • {plan?.Os} • {plan?.price}NC/month 
                         </SelectItem>
                       ))}
                     </SelectContent>
