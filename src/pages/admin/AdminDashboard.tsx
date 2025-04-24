@@ -509,7 +509,7 @@ const DashboardHome = () => {
         </div>
 
         {/* Additional Insights Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800/30">
             <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">Conversion Rate</h3>
             <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">68%</div>
@@ -527,7 +527,7 @@ const DashboardHome = () => {
             <div className="text-xl font-bold text-purple-700 dark:text-purple-400">VPS Pro</div>
             <p className="text-xs text-purple-700/70 dark:text-purple-400/70 mt-1">Accounts for 42% of all sales</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Financial Analytics Section */}
