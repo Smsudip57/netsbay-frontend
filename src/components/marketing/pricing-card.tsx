@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle } from "lucide-react"
+import { useState } from "react"
+import { useAppContext } from "@/context/context"
+import { useNavigate } from "react-router-dom"
 
 interface PricingCardProps {
   title: string
@@ -9,6 +12,8 @@ interface PricingCardProps {
   features: string[]
   buttonText: string
   popular?: boolean
+  isSelected?: boolean
+  onSelect?: () => void
 }
 
 export default function PricingCard({
@@ -18,9 +23,18 @@ export default function PricingCard({
   features,
   buttonText,
   popular = false,
+  isSelected = false,
+  onSelect,
 }: PricingCardProps) {
+  const { user, loading } = useAppContext()
+  const navigate = useNavigate()
   return (
-    <Card className={`flex flex-col border-slate-800 bg-slate-900/50 ${popular ? "ring-2 ring-blue-500" : ""}`}>
+    <Card 
+      className={`flex flex-col border-slate-800 bg-slate-900/50 transition-all group ${
+        isSelected ? "ring-2 ring-blue-500" : "hover:border-blue-600/50"
+      } ${popular ? "" : ""}`}
+      onClick={onSelect}
+    >
       {popular && (
         <div className="bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-t-lg mx-auto">Most Popular</div>
       )}
@@ -43,9 +57,17 @@ export default function PricingCard({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button className={`w-full ${popular ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-800 hover:bg-slate-700"}`}>
-          {buttonText}
-        </Button>
+      <Button className={`w-full group-hover:bg-blue-600 group-hover:hover:bg-blue-700 group-hover:text-white bg-blue-400 hover:bg-blue-700`}
+      onClick={()=>{
+        if(user && !loading){
+          navigate("/dashboard")
+        }else{
+          navigate("/signin")
+        }
+      }}
+      >
+  {buttonText}
+</Button>
       </CardFooter>
     </Card>
   )

@@ -6,7 +6,32 @@ import PricingCard from "../components/marketing/pricing-card"
 import FaqAccordion from "../components/marketing/faq-accordion"
 import ContactForm from "../components/marketing/contact-form"
 import FeatureCard from "../components/marketing/feature-card"
-import { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
+import { Star as StarOutline } from "lucide-react";
+
+// Full star component
+const StarFull = (props) => (
+  <svg {...props} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+  </svg>
+);
+
+// Half star component
+const StarHalf = (props) => (
+  <svg {...props} viewBox="0 0 24 24">
+    <defs>
+      <linearGradient id="halfStarGradient">
+        <stop offset="50%" stopColor="currentColor" />
+        <stop offset="50%" stopColor="transparent" stopOpacity="1" />
+      </linearGradient>
+    </defs>
+    <path fill="url(#halfStarGradient)" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="0.5" />
+  </svg>
+);
+
+// You can use the imported StarOutline from lucide-react as your empty star
+// Or define your own empty star component if needed
+const Star = StarOutline;
 
 export default function Home() {
   // Use ref to track initialization
@@ -102,7 +127,103 @@ export default function Home() {
     };
   }, []); // Empty dependency array means this runs once on mount
 
-
+  const TrustBox = () => {
+    const ref = useRef(null);
+    const [rating, setRating] = useState({
+      score: 4.8,
+      reviewCount: 247,
+      maxStars: 5
+    });
+    
+    // useEffect(() => {
+    //   // Load Trustpilot widget when available
+    //   if (window.Trustpilot) {
+    //     window.Trustpilot.loadFromElement(ref.current, true);
+    //   }
+    // }, []);
+    
+    // Generate star display
+    const renderStars = () => {
+      const stars = [];
+      const fullStars = Math.floor(rating.score);
+      const hasHalfStar = rating.score % 1 >= 0.5;
+      
+      for (let i = 0; i < rating.maxStars; i++) {
+        if (i < fullStars) {
+          stars.push(<StarFull key={i} className="h-5 w-5 text-yellow-400" />);
+        } else if (i === fullStars && hasHalfStar) {
+          stars.push(<StarHalf key={i} className="h-5 w-5 text-yellow-400" />);
+        } else {
+          stars.push(<Star key={i} className="h-5 w-5 text-gray-500" />);
+        }
+      }
+      return stars;
+    };
+  
+    return (
+      <div className="w-full max-w-3xl">
+        <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/90 shadow-2xl p-5 transition-all hover:border-blue-600/50 group">
+          {/* Hidden div to load actual Trustpilot widget data */}
+          <div ref={ref} className="hidden trustpilot-widget" data-locale="en-US" data-template-id="5419b6a8b0d04a076446a9ad" data-businessunit-id="your-business-id" data-style-height="24px" data-style-width="100%" data-theme="dark" data-stars="1,2,3,4,5"></div>
+          
+          {/* Custom UI - Horizontal Layout */}
+          <div className="flex items-center">
+            {/* Left side with icon and title */}
+            <div className="flex-shrink-0 pr-6 border-r border-slate-800">
+              <div className="flex flex-col items-center text-center w-36">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-blue-600/20 mb-2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-blue-400">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-white">Trustpilot</h3>
+              </div>
+            </div>
+            
+            {/* Middle section with stars and rating */}
+            <div className="flex-grow px-6">
+              <div className="flex flex-col">
+                <div className="flex items-center mb-2">
+                  {renderStars()}
+                </div>
+                
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-bold text-blue-400">{rating.score}</span>
+                  <span className="text-gray-400 text-xs ml-1">out of 5</span>
+                </div>
+                
+                <p className="text-gray-400 text-sm">
+                  Based on <span className="font-medium text-white">{rating.reviewCount}</span> reviews
+                </p>
+                
+                <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"
+                    style={{ width: `${(rating.score/rating.maxStars) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right side with button */}
+            <div className="flex-shrink-0 flex items-center justify-center pl-6 border-l border-slate-800">
+              <a 
+                href="https://www.trustpilot.com/review/netbay.in" 
+                target="_blank" 
+                rel="noopener" 
+                className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600/10 border border-blue-600/20 text-blue-400 transition-colors hover:bg-blue-600/20 whitespace-nowrap"
+              >
+                <span>Read Reviews</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                  <path d="M7 17L17 7M17 7H7M17 7V17" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-slate-950">
@@ -138,26 +259,27 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-4 mt-6">
                 <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
+                  {["https://st2.depositphotos.com/1006318/5909/v/450/depositphotos_59094701-stock-illustration-businessman-profile-icon.jpg", "https://www.shutterstock.com/image-vector/man-shirt-tie-businessman-avatar-600nw-548848999.jpg", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaq6aK4V6ica7lTtCpSBKHgx-qct4usXKpOQx_Qp98BSpidHWS3EldaEpYkR7EjK-9gFA&usqp=CAU"].map((i) => (
                     <div
                       key={i}
-                      className="inline-block h-8 w-8 rounded-full bg-slate-800 border-2 border-slate-950"
+                      className={`inline-block h-8 w-8 rounded-full bg-slate-800 border-2 border-slate-950  bg-cover bg-center`}
+                      style={{ backgroundImage: `url(${i})` }}
                     ></div>
                   ))}
                 </div>
                 <p className="text-sm text-slate-400">
-                  <span className="text-blue-400 font-medium">500+</span> customers trust NETBAY
+                  <span className="text-blue-400 font-medium">100+</span> customers trust NETBAY
                 </p>
               </div>
             </div>
-            <div className="relative lg:ml-auto">
+            <div className="relative lg:mx-auto ">
             <div id="spiral" className="absolute z-0 top-[-30%] left-[-25%] translate-x--1/4 translate-y--1/3"></div>
               <div className="relative invisi rounded-xl overflow-hidden border border-slate-800 bg-slate-900/90 shadow-2xl">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Server className="h-5 w-5 text-blue-400" />
-                      <span className="font-medium text-white">VPS Control Panel</span>
+                      <span className="font-medium text-white mr-6">VPS Control Panel</span>
                     </div>
                     <div className="flex gap-1">
                       <div className="h-3 w-3 rounded-full bg-red-500"></div>
@@ -206,13 +328,17 @@ export default function Home() {
       <section className="py-12 border-y border-slate-800">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <p className="text-sm text-slate-400">Trusted by leading companies worldwide</p>
+            {/* <p className="text-sm text-slate-400">TrustPilot</p> */}
             <div className="flex flex-wrap justify-center gap-8 md:gap-12 lg:gap-16">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {/* {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex items-center justify-center">
                   <div className="h-8 w-24 bg-slate-800/50 rounded"></div>
                 </div>
-              ))}
+              ))} */}
+                <div className="flex items-center justify-center">
+                  
+                  <TrustBox />
+                </div>
             </div>
           </div>
         </div>
@@ -238,12 +364,12 @@ export default function Home() {
             <FeatureCard
               icon={<Zap className="h-6 w-6 text-blue-400" />}
               title="High Performance"
-              description="Powered by NVMe SSD storage and latest-gen CPUs for lightning-fast loading times."
+              description="Powered by SSD storage and latest-gen CPUs for lightning-fast loading times."
             />
             <FeatureCard
               icon={<Shield className="h-6 w-6 text-purple-400" />}
               title="Advanced Security"
-              description="DDoS protection, firewall, and regular security updates to keep your data safe."
+              description="Security protection, firewall, and regular security updates to keep your data safe."
             />
             <FeatureCard
               icon={<Server className="h-6 w-6 text-blue-400" />}
@@ -282,17 +408,20 @@ export default function Home() {
             <p className="max-w-[700px] text-slate-400 md:text-xl">
               Choose the perfect VPS plan for your needs with no hidden fees or long-term commitments.
             </p>
+            <p className="max-w-[700px] text-slate-400 md:text-xl">
+              Starting at just <span className="text-blue-400 font-medium">₹499/month</span> .
+            </p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <PricingCard
               title="Starter VPS"
-              price="$19.99"
+              price="₹499"
               description="Perfect for small websites and applications"
               features={[
                 "2 vCPU Cores",
                 "4 GB RAM",
-                "50 GB NVMe SSD",
+                "10 GB Enterprise SSD",
                 "2 TB Bandwidth",
                 "1 IPv4 Address",
                 "24/7 Support",
@@ -302,32 +431,30 @@ export default function Home() {
             />
             <PricingCard
               title="Business VPS"
-              price="$39.99"
+              price="₹699"
               description="Ideal for growing businesses and e-commerce"
               features={[
                 "4 vCPU Cores",
                 "8 GB RAM",
-                "100 GB NVMe SSD",
+                "20 GB Enterprise SSD",
                 "4 TB Bandwidth",
                 "1 IPv4 Address",
                 "24/7 Priority Support",
-                "Free Domain",
               ]}
               buttonText="Get Started"
               popular={true}
             />
             <PricingCard
               title="Enterprise VPS"
-              price="$79.99"
+              price="₹1199"
               description="For high-traffic websites and resource-intensive applications"
               features={[
                 "8 vCPU Cores",
                 "16 GB RAM",
-                "200 GB NVMe SSD",
+                "50 GB Enterprise SSD",
                 "8 TB Bandwidth",
-                "2 IPv4 Addresses",
+                "1 IPv4 Addresses",
                 "24/7 Priority Support",
-                "Free Domain",
                 "Daily Backups",
               ]}
               buttonText="Get Started"
@@ -363,7 +490,7 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="flex flex-col justify-center space-y-4">
-              <div className="inline-block rounded-lg bg-blue-600/10 px-3 py-1 text-sm text-blue-400 mb-4 border border-blue-600/20">
+              <div className="inline-block w-max rounded-lg bg-blue-600/10 px-3 py-1 text-sm text-blue-400 mb-4 border border-blue-600/20">
                 Contact Us
               </div>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
@@ -381,7 +508,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-400">Email</p>
-                    <p className="font-medium text-white">support@netbayhosting.com</p>
+                    <p className="font-medium text-white">contact@netbay.in</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -390,7 +517,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-400">Phone</p>
-                    <p className="font-medium text-white">+1 (555) 123-4567</p>
+                    <p className="font-medium text-white">+91 95695 99061</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -399,7 +526,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-400">Address</p>
-                    <p className="font-medium text-white">123 Tech Street, Server City, 10001</p>
+                    <p className="font-medium text-white">1934 Vishal Vihar, Dubagga, Lucknow 226003</p>
                   </div>
                 </div>
               </div>

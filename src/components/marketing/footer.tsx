@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
             <Link to="/#home" className="flex items-center gap-2">
-              <img src="/netbaylogo.png" alt="NETBAY Logo" width={32} height={32} className="rounded-full" />
+              <img src="/lovable-uploads/1b20afa1-1d7e-4040-aa41-ff6f23d99986.png" alt="NETBAY Logo" width={32} height={32} className="rounded-full" />
               <span className="text-xl font-bold text-white">NETBAY</span>
             </Link>
             <p className="text-slate-400 max-w-md">
