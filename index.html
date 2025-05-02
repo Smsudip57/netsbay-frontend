@@ -50,7 +50,16 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       const particles = [];
-      const particleCount = 300;
+      
+      
+      const particleDensity = 0.0002; 
+      const minParticles = 100; 
+      const maxParticles = 500; 
+      const screenArea = window.innerWidth * window.innerHeight;
+      const particleCount = Math.min(maxParticles, Math.max(minParticles, Math.floor(screenArea * particleDensity)));
+      
+      console.log(`Screen size: ${window.innerWidth}×${window.innerHeight}, Particles: ${particleCount}`);
+      
       const mouse = { x: null, y: null, radius: 100 };
 
       window.addEventListener('mousemove', (e) => {
@@ -180,7 +189,17 @@
         }
       }
 
-      const spiral = () => {
+      
+
+      init();
+      animate();
+      // spiral();
+
+    };
+
+
+    const spiral = () => {
+      
         const N = 600; // total dots
         const SIZE = 400; // SVG px
         const DOT_RADIUS = 2; // px
@@ -234,16 +253,12 @@
           c.appendChild(animO);
         }
       }
-
-      init();
-      animate();
-      spiral();
-
-    };
-
     document.addEventListener('DOMContentLoaded', () => {
       initFunction();
+      // spiral();
     });
+  
+
 
 
 

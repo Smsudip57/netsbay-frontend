@@ -6,8 +6,104 @@ import PricingCard from "../components/marketing/pricing-card"
 import FaqAccordion from "../components/marketing/faq-accordion"
 import ContactForm from "../components/marketing/contact-form"
 import FeatureCard from "../components/marketing/feature-card"
+import { useEffect, useRef } from "react"
 
 export default function Home() {
+  // Use ref to track initialization
+  const spiralInitialized = useRef(false);
+  
+  useEffect(() => {
+    // Only run once
+    if (spiralInitialized.current) return;
+    
+    const createSpiral = () => {
+      const spiralContainer = document.getElementById("spiral");
+      if (!spiralContainer) {
+        console.warn("Spiral container not found");
+        return;
+      }
+      
+      // Clear existing content
+      spiralContainer.innerHTML = '';
+      
+      const N = 300; // Reduced for better performance
+      const SIZE = 400;
+      const DOT_RADIUS = 2;
+      const MARGIN = 2;
+      const DURATION = 2;
+      const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+      const CENTER = SIZE / 2;
+      const MAX_RADIUS = CENTER - MARGIN - DOT_RADIUS;
+      const svgNS = "http://www.w3.org/2000/svg";
+      
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", String(SIZE));
+      svg.setAttribute("height", String(SIZE));
+      svg.setAttribute("viewBox", `0 0 ${SIZE} ${SIZE}`);
+      spiralContainer.appendChild(svg);
+      
+      for (let i = 0; i < N; i++) {
+        const idx = i + 0.5;
+        const frac = idx / N;
+        const r = Math.sqrt(frac) * MAX_RADIUS;
+        const theta = idx * GOLDEN_ANGLE;
+        const x = CENTER + r * Math.cos(theta);
+        const y = CENTER + r * Math.sin(theta);
+        
+        // Perfect SVG circle
+        const c = document.createElementNS(svgNS, "circle");
+        c.setAttribute("cx", String(x));  // Convert to string
+        c.setAttribute("cy", String(y));  // Convert to string
+        c.setAttribute("r", String(DOT_RADIUS));  // Convert to string
+        c.setAttribute("fill", "rgba(18, 38, 76, 0.5)");
+        svg.appendChild(c);
+        
+        // Only animate every 3rd dot for better performance
+        if (i % 3 === 0) {
+          // Radius pulse
+          const animR = document.createElementNS(svgNS, "animate");
+          animR.setAttribute("attributeName", "r");
+          animR.setAttribute(
+            "values",
+            `${DOT_RADIUS * 0.5};${DOT_RADIUS * 1.5};${DOT_RADIUS * 0.5}`
+          );
+          animR.setAttribute("dur", `${DURATION}s`);
+          animR.setAttribute("begin", `${frac * DURATION}s`);
+          animR.setAttribute("repeatCount", "indefinite");
+          animR.setAttribute("calcMode", "spline");
+          animR.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
+          c.appendChild(animR);
+          
+          // Opacity pulse
+          const animO = document.createElementNS(svgNS, "animate");
+          animO.setAttribute("attributeName", "opacity");
+          animO.setAttribute("values", "0.3;1;0.3");
+          animO.setAttribute("dur", `${DURATION}s`);
+          animO.setAttribute("begin", `${frac * DURATION}s`);
+          animO.setAttribute("repeatCount", "indefinite");
+          animO.setAttribute("calcMode", "spline");
+          animO.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
+          c.appendChild(animO);
+        }
+      }
+      
+      spiralInitialized.current = true;
+    };
+
+    // Delay initialization to ensure DOM is ready
+    setTimeout(createSpiral, 500);
+    
+    // Cleanup function
+    return () => {
+      const spiralContainer = document.getElementById("spiral");
+      if (spiralContainer) {
+        spiralContainer.innerHTML = '';
+      }
+    };
+  }, []); // Empty dependency array means this runs once on mount
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-slate-950">
       <Navbar />
