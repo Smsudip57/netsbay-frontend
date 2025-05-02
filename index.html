@@ -38,8 +38,14 @@
       return `rgba(100, 180, 255,${randomOpacity})`;
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const initFunction = () => {
       const canvas = document.getElementById('bubbleCanvas');
+      const spiralContainer = document.getElementById('spiral');
+      if (!canvas || !spiralContainer) {
+        console.log("Canvas or spiral elements not found, waiting...");
+        setTimeout(function() { initFunction(); }, 300);
+        return;
+      }
       const ctx = canvas.getContext('2d');
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -232,6 +238,11 @@
       init();
       animate();
       spiral();
+
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initFunction();
     });
 
 
