@@ -28,10 +28,11 @@ const AddProduct = () => {
     inStock: true,
     os: "",
     price: "",
-    maxPendingService:0
+    maxPendingService: 0
   });
   const [ipsets, setIpsets] = useState<string[]>([]);
   const [osTypes, setOsTypes] = useState<string[]>([]);
+   const [datacenters, setDatacenters] = useState<any>([]);
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData((prev) => ({
@@ -51,7 +52,7 @@ const AddProduct = () => {
       !formData.ram ||
       !formData.storage ||
       !formData.os ||
-      !formData.price 
+      !formData.price
     ) {
       toast.error("Please fill in all fields");
       return;
@@ -95,16 +96,22 @@ const AddProduct = () => {
         });
         const osres = await axios.get("/api/admin/system", {
           params: { name: "osType" },
-          withCredentials: true,  
+          withCredentials: true,
+        });
+        const datacenter = await axios.get("/api/admin/system", {
+          params: { name: "datacenter" },
+          withCredentials: true,
         });
         setOsTypes(osres?.data);
         setIpsets(res?.data);
+        setDatacenters(datacenter?.data);
       } catch (error) {
         console.error("Error fetching ipsets:", error);
       }
     };
     fetchIpsets();
   }, []);
+
 
   return (
     <div className="p-6 flex-1 bg-background">
@@ -160,7 +167,7 @@ const AddProduct = () => {
                       <SelectValue placeholder={ipsets?.length > 0 ? "Select IP Set" : "No IP Sets Found"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {ipsets?.length>0 && ipsets?.map((ipset:any, index) => (
+                      {ipsets?.length > 0 && ipsets?.map((ipset: any, index) => (
                         <SelectItem key={index} value={ipset?.value}>
                           {ipset?.value}
                         </SelectItem>
@@ -238,7 +245,7 @@ const AddProduct = () => {
                       <SelectValue placeholder={osTypes?.length > 0 ? "Select OS" : "No Os Found"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {osTypes?.length>0 && osTypes?.map((os: any, index) => (
+                      {osTypes?.length > 0 && osTypes?.map((os: any, index) => (
                         <SelectItem key={index} value={os?.value}>
                           {os?.value}
                         </SelectItem>
@@ -278,6 +285,24 @@ const AddProduct = () => {
                     onChange={(e) => handleInputChange("price", e.target.value)}
                     placeholder="e.g., 100 NC"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="os"> Datacenter</Label>
+                  <Select
+                    onValueChange={(value) => handleInputChange("datacenter", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={osTypes?.length > 0 ? "Select DataCenter" : "No DataCenter Found"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {datacenters?.length > 0 && datacenters?.map((os: any, index) => (
+                        <SelectItem key={index} value={os?.value}>
+                          {os?.value?.location} | {os?.value?.datastore} ( {os?.value?.status ? "Active" : "Inactive"} )
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

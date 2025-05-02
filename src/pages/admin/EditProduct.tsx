@@ -14,6 +14,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import axios from "axios";
+import { set } from "date-fns";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -30,7 +31,11 @@ const EditProduct = () => {
     Os: "",
     price: "",
     maxPendingService: 0,
+    datacenter: {},
   });
+  const [ips, setIpsets] = useState<any>([]);
+  const [osTypes, setOsTypes] = useState<any>([]);
+  const [datacenters, setDatacenters] = useState<any>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +54,33 @@ const EditProduct = () => {
 
     fetchData();
   }, [id]);
+
+
+  useEffect(() => {
+    const fetchIpsets = async () => {
+      try {
+        const res = await axios.get("/api/admin/system", {
+          params: { name: "ipSets" },
+          withCredentials: true,
+        });
+        const osres = await axios.get("/api/admin/system", {
+          params: { name: "osType" },
+          withCredentials: true,
+        });
+        const datacenter = await axios.get("/api/admin/system", {
+          params: { name: "datacenter" },
+          withCredentials: true,
+        });
+        setOsTypes(osres?.data);
+        setIpsets(res?.data);
+        setDatacenters(datacenter?.data);
+      } catch (error) {
+        console.error("Error fetching ipsets:", error);
+      }
+    };
+    fetchIpsets();
+  }, []);
+
 
   const handleInputChange = (
     field: string,
@@ -144,11 +176,12 @@ const EditProduct = () => {
                       <SelectValue placeholder="Select IP Set" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="103.211">103.211</SelectItem>
-                      <SelectItem value="103.157">103.157</SelectItem>
-                      <SelectItem value="157.15">157.15</SelectItem>
-                      <SelectItem value="38.3">38.3</SelectItem>
-                      <SelectItem value="161.248">161.248</SelectItem>
+                      {ips?.length > 0 &&
+                        ips?.map((ip: any, index: number) => (
+                          <SelectItem key={index} value={ip?.value}>
+                            {ip?.value}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -211,14 +244,23 @@ const EditProduct = () => {
                   />
                 </div>
 
+
                 <div className="space-y-2">
-                  <Label htmlFor="Os">Operating System</Label>
-                  <Input
-                    id="Os"
-                    type="text"
-                    value={formData.Os}
-                    onChange={(e) => handleInputChange("Os", e.target.value)}
-                  />
+                  <Label htmlFor="os">Operating System</Label>
+                  <Select
+                    onValueChange={(value) => handleInputChange("os", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={osTypes?.length > 0 ? "Select OS" : "No Os Found"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {osTypes?.length > 0 && osTypes?.map((os: any, index) => (
+                        <SelectItem key={index} value={os?.value}>
+                          {os?.value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -258,6 +300,25 @@ const EditProduct = () => {
                     placeholder="e.g., 100 NC"
                   />
                 </div>
+
+                <div className="space-y-2">
+  <Label htmlFor="datacenter">Datacenter</Label>
+  <Select
+    value={formData.datacenter || ""}
+    onValueChange={(value) => handleInputChange("datacenter", value)}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder={datacenters?.length > 0 ? "Select DataCenter" : "No DataCenter Found"} />
+    </SelectTrigger>
+    <SelectContent>
+      {datacenters?.length > 0 && datacenters?.map((dc: any, index) => (
+        <SelectItem key={index} value={dc._id}>
+          {dc.value.location} | {dc.value.datastore} ({dc.value.status ? "Active" : "Inactive"})
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
 
                 <div className="space-y-2">
                   <Label>Stock Availability</Label>

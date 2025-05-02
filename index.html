@@ -1,18 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Netbay</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
-  </head>
 
-  <body>
-    <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- <script src="https://checkout.phonepe.com/v1/checkout.js"></script> -->
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Netbay</title>
+  <meta name="description" content="Lovable Generated Project" />
+  <meta name="author" content="Lovable" />
+  <meta property="og:image" content="/og-image.png" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+  <script type="module" src="/src/main.tsx"></script>
+  <script>
+    const generateComplementaryColor = () => {
+      const colorOptions = [
+        { hue: [170, 200], sat: [80, 100], light: [60, 80] },
+        { hue: [250, 290], sat: [70, 90], light: [65, 80] },
+        { hue: [40, 60], sat: [70, 90], light: [70, 80] },
+        { hue: [180, 220], sat: [60, 80], light: [70, 85] }
+      ];
+
+      const rand = Math.random();
+      const range = rand < 0.4 ? colorOptions[0] :
+        rand < 0.7 ? colorOptions[1] :
+          rand < 0.8 ? colorOptions[2] : colorOptions[3];
+
+      // Generate random values within the selected range
+      const hue = Math.random() * (range.hue[1] - range.hue[0]) + range.hue[0];
+      const sat = Math.random() * (range.sat[1] - range.sat[0]) + range.sat[0];
+      const light = Math.random() * (range.light[1] - range.light[0]) + range.light[0];
+
+      // return `hsl(${hue}, ${sat}%, ${light}%)`;
+      const randomOpacity = Math.random() * 0.1 + 0.1;
+      return `rgba(100, 180, 255,${randomOpacity})`;
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('bubbleCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const particles = [];
+      const particleCount = 300;
+      const mouse = { x: null, y: null, radius: 100 };
+
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.x;
+        mouse.y = e.y;
+      });
+
+      window.addEventListener('touchmove', (e) => {
+        mouse.x = e.touches[0].clientX;
+        mouse.y = e.touches[0].clientY;
+      });
+
+      window.addEventListener('mouseout', () => {
+        mouse.x = null;
+        mouse.y = null;
+      });
+
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      // Particle class
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 5 + 1;
+          this.density = Math.random() * 30 + 1;
+          this.color = generateComplementaryColor();
+          this.baseX = this.x;
+          this.baseY = this.y;
+          this.velocity = Math.random() * 0.2 - 0.1;
+          this.angle = 0;
+        }
+
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+
+        update() {
+          this.angle += this.velocity;
+          this.baseX += Math.cos(this.angle) * 0.5;
+          this.baseY += Math.sin(this.angle) * 0.5;
+
+          if (mouse.x && mouse.y) {
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < mouse.radius) {
+              const forceDirectionX = dx / distance;
+              const forceDirectionY = dy / distance;
+              const force = (mouse.radius - distance) / mouse.radius * 2;
+
+              this.x -= forceDirectionX * force * this.density;
+              this.y -= forceDirectionY * force * this.density;
+            } else {
+              // Return to base position
+              if (this.x !== this.baseX) {
+                const dx = this.x - this.baseX;
+                this.x -= dx / 10;
+              }
+              if (this.y !== this.baseY) {
+                const dy = this.y - this.baseY;
+                this.y -= dy / 10;
+              }
+            }
+          } else {
+            // Return to base position when mouse is not hovering
+            if (this.x !== this.baseX) {
+              const dx = this.x - this.baseX;
+              this.x -= dx / 10;
+            }
+            if (this.y !== this.baseY) {
+              const dy = this.y - this.baseY;
+              this.y -= dy / 10;
+            }
+          }
+
+          this.draw();
+        }
+      }
+
+      // Create particles
+      function init() {
+        for (let i = 0; i < particleCount; i++) {
+          particles.push(new Particle());
+        }
+      }
+
+      // Animation loop
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < particles.length; i++) {
+          particles[i].update();
+        }
+
+        // Draw connection lines between close particles
+        connect();
+
+        requestAnimationFrame(animate);
+      }
+
+      // Connect particles with lines
+      function connect() {
+        for (let a = 0; a < particles.length; a++) {
+          for (let b = a; b < particles.length; b++) {
+            const dx = particles[a].x - particles[b].x;
+            const dy = particles[a].y - particles[b].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 100) {
+              ctx.strokeStyle = `rgba(255, 255, 255, 0.1`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(particles[a].x, particles[a].y);
+              ctx.lineTo(particles[b].x, particles[b].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      const spiral = () => {
+        const N = 600; // total dots
+        const SIZE = 400; // SVG px
+        const DOT_RADIUS = 2; // px
+        const MARGIN = 2; // px padding
+        const DURATION = 3; // seconds per pulse cycle
+        const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // 2π/φ²
+        const CENTER = SIZE / 2;
+        const MAX_RADIUS = CENTER - MARGIN - DOT_RADIUS;
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", SIZE);
+        svg.setAttribute("height", SIZE);
+        svg.setAttribute("viewBox", `0 0 ${SIZE} ${SIZE}`);
+        document.getElementById("spiral").appendChild(svg);
+        for (let i = 0; i < N; i++) {
+          const idx = i + 0.5;
+          const frac = idx / N;
+          const r = Math.sqrt(frac) * MAX_RADIUS;
+          const theta = idx * GOLDEN_ANGLE;
+          const x = CENTER + r * Math.cos(theta);
+          const y = CENTER + r * Math.sin(theta);
+          // Perfect SVG circle
+          const c = document.createElementNS(svgNS, "circle");
+          c.setAttribute("cx", x);
+          c.setAttribute("cy", y);
+          c.setAttribute("r", DOT_RADIUS);
+          c.setAttribute("fill", "rgba(18, 38, 76, 0.5)");
+          svg.appendChild(c);
+          // Radius pulse
+          const animR = document.createElementNS(svgNS, "animate");
+          animR.setAttribute("attributeName", "r");
+          animR.setAttribute(
+            "values",
+            `${DOT_RADIUS * 0.5};${DOT_RADIUS * 1.5};${DOT_RADIUS * 0.5}`
+          );
+          animR.setAttribute("dur", `${DURATION}s`);
+          animR.setAttribute("begin", `${frac * DURATION}s`);
+          animR.setAttribute("repeatCount", "indefinite");
+          animR.setAttribute("calcMode", "spline");
+          animR.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
+          c.appendChild(animR);
+          // Opacity pulse
+          const animO = document.createElementNS(svgNS, "animate");
+          animO.setAttribute("attributeName", "opacity");
+          animO.setAttribute("values", "0.3;1;0.3");
+          animO.setAttribute("dur", `${DURATION}s`);
+          animO.setAttribute("begin", `${frac * DURATION}s`);
+          animO.setAttribute("repeatCount", "indefinite");
+          animO.setAttribute("calcMode", "spline");
+          animO.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
+          c.appendChild(animO);
+        }
+      }
+
+      init();
+      animate();
+      spiral();
+    });
+
+
+
+
+
+  </script>
+  <!-- <script src="https://checkout.phonepe.com/v1/checkout.js"></script> -->
+</body>
+
 </html>
