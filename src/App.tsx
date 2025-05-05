@@ -105,7 +105,7 @@ const App = () => {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/refund" element={<Refund />} />
                 <Route path="/payment/status" element={<PaymentStatus />} />
-                <Route path="/test" element={<Test />} />
+                {/* <Route path="/test" element={<Test />} /> */}
               </Routes>
               <DialogComp />
             </BrowserRouter>

@@ -5,6 +5,7 @@ import { SystemDetailsGrid } from "@/components/dashboard/service/SystemDetailsG
 import { ResourceUtilization } from "@/components/dashboard/service/ResourceUtilization";
 import { ServiceCredentials } from "@/components/dashboard/service/ServiceCredentials";
 import { ServiceStatusCard } from "@/components/dashboard/service/ServiceStatusCard";
+import DataCenterStatus from "@/components/dashboard/service/ServiceDataCenterCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertCircle, ArrowRight, Save } from "lucide-react";
 import { useAppContext } from "@/context/context";
@@ -24,7 +25,19 @@ import { cn } from "@/lib/utils";
 import axios from "axios"
 
 
-// Mock data for resource utilization
+interface DatacenterValue {
+  location: string;
+  datastore: string;
+  status: boolean;
+}
+
+interface DatacenterSystem {
+  _id: string;
+  name: 'datacenter';
+  value: DatacenterValue;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 type ServiceType =
   | "Internal RDP"
@@ -44,6 +57,7 @@ interface ServiceVM {
   price: number;
   Stock?: boolean;
   createdAt?: Date;
+  dataCenterLocation?:DatacenterSystem;
 }
 
 type ServiceStatus = "unsold" | "pending" | "active" | "expired" | "terminated";
@@ -270,6 +284,7 @@ const ServiceDetails = () => {
     }
   };
 
+  // console.log(serviceDetails)
   const changeChecker = () => {
     const originalDate = serviceDetails?.expiryDate
       ? new Date(serviceDetails.expiryDate).getTime()
@@ -531,11 +546,15 @@ const ServiceDetails = () => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <DataCenterStatus
+              status={serviceDetails?.relatedProduct?.dataCenterLocation?.value.status}
+              value={serviceDetails?.relatedProduct?.dataCenterLocation?.value}
+            />
             <ServiceStatusCard
               status={serviceDetails?.status}
               service={serviceDetails}
             />
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <ServiceActionsCard
                 serviceType={serviceDetails?.relatedProduct?.serviceType}
                 vmId={serviceDetails?.serviceId}
@@ -550,6 +569,18 @@ const ServiceDetails = () => {
               />
             </div>
           </div>
+
+          {!serviceDetails?.relatedProduct?.dataCenterLocation?.value?.status&& (
+            <div className="flex items-center justify-between p-6 bg-amber-500/10 border border-amber-500/20 rounded-lg shadow-sm">
+              <div className="flex items-center gap-3 text-amber-600">
+                <AlertCircle className="h-5 w-5" />
+                <p className="font-medium">
+                We are currently experiencing some issues with our network or servers, which may temporarily affect this service. If everything is functioning normally on your end, please disregard this message.
+                </p>
+              </div>
+              
+            </div>
+          )}
 
           <div className="space-y-8">
             {/* <ResourceUtilization utilization={mockUtilization} /> */}

@@ -113,7 +113,9 @@ export function MarketingNavbar() {
                           ? user?.profile?.avatarUrl
                           : "https://github.com/shadcn.png"
                       }
+                      className="rounded-full overflow-hidden"
                       alt="User"
+                      style={{overflow: "hidden", borderRadius: "100%", aspectRatio: "1/1"}}
                     />
                     <AvatarFallback>UN</AvatarFallback>
                   </Avatar>

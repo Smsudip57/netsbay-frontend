@@ -28,11 +28,12 @@ const AddProduct = () => {
     inStock: true,
     os: "",
     price: "",
-    maxPendingService: 0
+    maxPendingService: 0,
+    dataCenterLocation: ""
   });
   const [ipsets, setIpsets] = useState<string[]>([]);
   const [osTypes, setOsTypes] = useState<string[]>([]);
-   const [datacenters, setDatacenters] = useState<any>([]);
+  const [datacenters, setDatacenters] = useState<any>([]);
 
   const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData((prev) => ({
@@ -52,7 +53,8 @@ const AddProduct = () => {
       !formData.ram ||
       !formData.storage ||
       !formData.os ||
-      !formData.price
+      !formData.price ||
+      !formData.dataCenterLocation
     ) {
       toast.error("Please fill in all fields");
       return;
@@ -286,21 +288,34 @@ const AddProduct = () => {
                     placeholder="e.g., 100 NC"
                   />
                 </div>
-
+                
                 <div className="space-y-2">
-                  <Label htmlFor="os"> Datacenter</Label>
+                  <Label htmlFor="datacenter">Datacenter</Label>
                   <Select
-                    onValueChange={(value) => handleInputChange("datacenter", value)}
+                    onValueChange={(value) => {
+                      const selectedDC = datacenters.find(dc => dc?._id === value);
+                      handleInputChange("dataCenterLocation", value);
+                      if (selectedDC) {
+                        handleInputChange("dataCenterDisplayName",
+                          `${selectedDC.value?.location} | ${selectedDC.value?.datastore}`);
+                      }
+                    }}
+                    value={formData.dataCenterLocation} 
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={osTypes?.length > 0 ? "Select DataCenter" : "No DataCenter Found"} />
+                      <SelectValue placeholder={datacenters?.length > 0 ? "Select DataCenter" : "No DataCenter Found"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {datacenters?.length > 0 && datacenters?.map((os: any, index) => (
-                        <SelectItem key={index} value={os?.value}>
-                          {os?.value?.location} | {os?.value?.datastore} ( {os?.value?.status ? "Active" : "Inactive"} )
-                        </SelectItem>
-                      ))}
+                      {datacenters?.length > 0 && datacenters?.map((dc: any, index) => {
+                        const dcValue = dc?._id;
+                        const displayText = `${dc?.value?.location} | ${dc?.value?.datastore} (${dc?.value?.status ? "Active" : "Inactive"})`;
+
+                        return (
+                          <SelectItem key={index} value={dcValue}>
+                            {displayText}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

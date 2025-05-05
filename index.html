@@ -8,14 +8,14 @@
   <meta name="description" content="Lovable Generated Project" />
   <meta name="author" content="Lovable" />
   <meta property="og:image" content="/og-image.png" />
-  
+
 </head>
 
 <body>
-  
+
   <div id="root"></div>
   <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-  
+
   <script type="module" src="/src/main.tsx"></script>
   <script>
     const generateComplementaryColor = () => {
@@ -44,25 +44,30 @@
     const initFunction = () => {
       const canvas = document.getElementById('bubbleCanvas');
       const spiralContainer = document.getElementById('spiral');
-      if (!canvas || !spiralContainer) {
-        console.log("Canvas or spiral elements not found, waiting...");
-        setTimeout(function() { initFunction(); }, 300);
+
+      if (window && window?.location?.href.split('/')[3] !== "") {
         return;
       }
+      if (!canvas || !spiralContainer) {
+        console.log("Canvas or spiral elements not found, waiting...");
+        setTimeout(function () { initFunction(); }, 300);
+        return;
+      }
+
       const ctx = canvas.getContext('2d');
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       const particles = [];
-      
-      
-      const particleDensity = 0.0002; 
-      const minParticles = 100; 
-      const maxParticles = 500; 
+
+
+      const particleDensity = 0.0002;
+      const minParticles = 100;
+      const maxParticles = 500;
       const screenArea = window.innerWidth * window.innerHeight;
       const particleCount = Math.min(maxParticles, Math.max(minParticles, Math.floor(screenArea * particleDensity)));
-      
+
       console.log(`Screen size: ${window.innerWidth}×${window.innerHeight}, Particles: ${particleCount}`);
-      
+
       const mouse = { x: null, y: null, radius: 100 };
 
       window.addEventListener('mousemove', (e) => {
@@ -192,7 +197,7 @@
         }
       }
 
-      
+
 
       init();
       animate();
@@ -202,65 +207,102 @@
 
 
     const spiral = () => {
-      
-        const N = 600; // total dots
-        const SIZE = 400; // SVG px
-        const DOT_RADIUS = 2; // px
-        const MARGIN = 2; // px padding
-        const DURATION = 3; // seconds per pulse cycle
-        const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // 2π/φ²
-        const CENTER = SIZE / 2;
-        const MAX_RADIUS = CENTER - MARGIN - DOT_RADIUS;
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("width", SIZE);
-        svg.setAttribute("height", SIZE);
-        svg.setAttribute("viewBox", `0 0 ${SIZE} ${SIZE}`);
-        document.getElementById("spiral").appendChild(svg);
-        for (let i = 0; i < N; i++) {
-          const idx = i + 0.5;
-          const frac = idx / N;
-          const r = Math.sqrt(frac) * MAX_RADIUS;
-          const theta = idx * GOLDEN_ANGLE;
-          const x = CENTER + r * Math.cos(theta);
-          const y = CENTER + r * Math.sin(theta);
-          // Perfect SVG circle
-          const c = document.createElementNS(svgNS, "circle");
-          c.setAttribute("cx", x);
-          c.setAttribute("cy", y);
-          c.setAttribute("r", DOT_RADIUS);
-          c.setAttribute("fill", "rgba(18, 38, 76, 0.5)");
-          svg.appendChild(c);
-          // Radius pulse
-          const animR = document.createElementNS(svgNS, "animate");
-          animR.setAttribute("attributeName", "r");
-          animR.setAttribute(
-            "values",
-            `${DOT_RADIUS * 0.5};${DOT_RADIUS * 1.5};${DOT_RADIUS * 0.5}`
-          );
-          animR.setAttribute("dur", `${DURATION}s`);
-          animR.setAttribute("begin", `${frac * DURATION}s`);
-          animR.setAttribute("repeatCount", "indefinite");
-          animR.setAttribute("calcMode", "spline");
-          animR.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
-          c.appendChild(animR);
-          // Opacity pulse
-          const animO = document.createElementNS(svgNS, "animate");
-          animO.setAttribute("attributeName", "opacity");
-          animO.setAttribute("values", "0.3;1;0.3");
-          animO.setAttribute("dur", `${DURATION}s`);
-          animO.setAttribute("begin", `${frac * DURATION}s`);
-          animO.setAttribute("repeatCount", "indefinite");
-          animO.setAttribute("calcMode", "spline");
-          animO.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
-          c.appendChild(animO);
+
+      const N = 600; // total dots
+      const SIZE = 400; // SVG px
+      const DOT_RADIUS = 2; // px
+      const MARGIN = 2; // px padding
+      const DURATION = 3; // seconds per pulse cycle
+      const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // 2π/φ²
+      const CENTER = SIZE / 2;
+      const MAX_RADIUS = CENTER - MARGIN - DOT_RADIUS;
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", SIZE);
+      svg.setAttribute("height", SIZE);
+      svg.setAttribute("viewBox", `0 0 ${SIZE} ${SIZE}`);
+      document.getElementById("spiral").appendChild(svg);
+      for (let i = 0; i < N; i++) {
+        const idx = i + 0.5;
+        const frac = idx / N;
+        const r = Math.sqrt(frac) * MAX_RADIUS;
+        const theta = idx * GOLDEN_ANGLE;
+        const x = CENTER + r * Math.cos(theta);
+        const y = CENTER + r * Math.sin(theta);
+        // Perfect SVG circle
+        const c = document.createElementNS(svgNS, "circle");
+        c.setAttribute("cx", x);
+        c.setAttribute("cy", y);
+        c.setAttribute("r", DOT_RADIUS);
+        c.setAttribute("fill", "rgba(18, 38, 76, 0.5)");
+        svg.appendChild(c);
+        // Radius pulse
+        const animR = document.createElementNS(svgNS, "animate");
+        animR.setAttribute("attributeName", "r");
+        animR.setAttribute(
+          "values",
+          `${DOT_RADIUS * 0.5};${DOT_RADIUS * 1.5};${DOT_RADIUS * 0.5}`
+        );
+        animR.setAttribute("dur", `${DURATION}s`);
+        animR.setAttribute("begin", `${frac * DURATION}s`);
+        animR.setAttribute("repeatCount", "indefinite");
+        animR.setAttribute("calcMode", "spline");
+        animR.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
+        c.appendChild(animR);
+        // Opacity pulse
+        const animO = document.createElementNS(svgNS, "animate");
+        animO.setAttribute("attributeName", "opacity");
+        animO.setAttribute("values", "0.3;1;0.3");
+        animO.setAttribute("dur", `${DURATION}s`);
+        animO.setAttribute("begin", `${frac * DURATION}s`);
+        animO.setAttribute("repeatCount", "indefinite");
+        animO.setAttribute("calcMode", "spline");
+        animO.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
+        c.appendChild(animO);
+      }
+    }
+
+
+    window.initFunction = initFunction;
+  
+  // Listen for all pathname changes
+  let lastPathname = window.location.pathname;
+  
+  // Set up history change listener
+  (() => {
+    const pushState = history.pushState;
+    const replaceState = history.replaceState;
+    
+    // Override pushState
+    history.pushState = function() {
+      pushState.apply(history, arguments);
+      handlePathChange();
+    };
+    
+    // Override replaceState
+    history.replaceState = function() {
+      replaceState.apply(history, arguments);
+      handlePathChange();
+    };
+    
+    // Handle popstate events (back/forward buttons)
+    window.addEventListener('popstate', handlePathChange);
+    
+    function handlePathChange() {
+      if (lastPathname !== window.location.pathname) {
+        lastPathname = window.location.pathname;
+        if (typeof initFunction === 'function') {
+          console.log("Path changed to:", lastPathname);
+          initFunction();
         }
       }
+    }
+  })();
     document.addEventListener('DOMContentLoaded', () => {
       initFunction();
       // spiral();
     });
-  
+
 
 
 

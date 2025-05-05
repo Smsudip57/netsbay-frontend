@@ -32,6 +32,7 @@ const EditProduct = () => {
     price: "",
     maxPendingService: 0,
     datacenter: {},
+    dataCenterLocation: "",
   });
   const [ips, setIpsets] = useState<any>([]);
   const [osTypes, setOsTypes] = useState<any>([]);
@@ -54,7 +55,7 @@ const EditProduct = () => {
 
     fetchData();
   }, [id]);
-
+  console.log(formData);
 
   useEffect(() => {
     const fetchIpsets = async () => {
@@ -248,7 +249,8 @@ const EditProduct = () => {
                 <div className="space-y-2">
                   <Label htmlFor="os">Operating System</Label>
                   <Select
-                    onValueChange={(value) => handleInputChange("os", value)}
+                    value={formData.Os} // This line is missing
+                    onValueChange={(value) => handleInputChange("Os", value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={osTypes?.length > 0 ? "Select OS" : "No Os Found"} />
@@ -302,23 +304,36 @@ const EditProduct = () => {
                 </div>
 
                 <div className="space-y-2">
-  <Label htmlFor="datacenter">Datacenter</Label>
-  <Select
-    value={formData.datacenter || ""}
-    onValueChange={(value) => handleInputChange("datacenter", value)}
-  >
-    <SelectTrigger>
-      <SelectValue placeholder={datacenters?.length > 0 ? "Select DataCenter" : "No DataCenter Found"} />
-    </SelectTrigger>
-    <SelectContent>
-      {datacenters?.length > 0 && datacenters?.map((dc: any, index) => (
-        <SelectItem key={index} value={dc._id}>
-          {dc.value.location} | {dc.value.datastore} ({dc.value.status ? "Active" : "Inactive"})
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
+                  <Label htmlFor="datacenter">Datacenter</Label>
+                  <Select
+                    onValueChange={(value) => {
+                      const selectedDC = datacenters.find(dc => dc?._id === value);
+                      handleInputChange("dataCenterLocation", value);
+                      if (selectedDC) {
+                        handleInputChange("dataCenterDisplayName",
+                          `${selectedDC.value?.location} | ${selectedDC.value?.datastore}`);
+                      }
+                    }}
+                    value={formData.dataCenterLocation}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={datacenters?.length > 0 ? "Select DataCenter" : "No DataCenter Found"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {datacenters?.length > 0 && datacenters?.map((dc: any, index) => {
+                        const dcValue = dc?._id;
+                        const displayText = `${dc?.value?.location} | ${dc?.value?.datastore} (${dc?.value?.status ? "Active" : "Inactive"})`;
+
+                        return (
+                          <SelectItem key={index} value={dcValue}>
+                            {displayText}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
 
                 <div className="space-y-2">
                   <Label>Stock Availability</Label>

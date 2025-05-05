@@ -135,15 +135,15 @@ export default function Footer() {
             © {new Date().getFullYear()} NETBAY HOSTING SOLUTIONS. All rights reserved.
           </div>
           <div className="flex flex-wrap gap-6 text-sm">
-            <Link to="#" className="text-slate-400 hover:text-white transition-colors">
+            <Link to="/terms" className="text-slate-400 hover:text-white transition-colors">
               Terms of Service
             </Link>
-            <Link to="#" className="text-slate-400 hover:text-white transition-colors">
+            <Link to="/privacy-policy" className="text-slate-400 hover:text-white transition-colors">
               Privacy Policy
             </Link>
-            <Link to="#" className="text-slate-400 hover:text-white transition-colors">
+            {/* <Link to="#" className="text-slate-400 hover:text-white transition-colors">
               Cookie Policy
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>
