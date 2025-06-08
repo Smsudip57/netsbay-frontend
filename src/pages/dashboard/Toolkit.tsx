@@ -2,6 +2,7 @@
 import { Settings, Terminal, Network } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom"
 
 const Toolkit = () => {
   return (
@@ -20,7 +21,9 @@ const Toolkit = () => {
               <CardDescription>Access your server via web terminal</CardDescription>
             </CardHeader>
             <CardContent>
+              <Link to="/dashboard/toolkit/terminal">
               <Button className="w-full">Launch Console</Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -33,7 +36,8 @@ const Toolkit = () => {
               <CardDescription>Manage server settings</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Configure</Button>
+              {/* <Button className="w-full">Configure</Button> */}
+              <Button className="w-full" disabled>Coming Soon</Button>
             </CardContent>
           </Card>
 
@@ -46,7 +50,8 @@ const Toolkit = () => {
               <CardDescription>Manage proxy and firewall settings</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Configure Proxy</Button>
+              {/* <Button className="w-full">Configure Proxy</Button> */}
+              <Button className="w-full" disabled>Coming Soon</Button>
             </CardContent>
           </Card>
         </div>

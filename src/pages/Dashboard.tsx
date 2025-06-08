@@ -13,6 +13,8 @@ import Wallet from "./dashboard/Wallet";
 import Toolkit from "./dashboard/Toolkit";
 import PurchaseNetcoins from "./dashboard/PurchaseNetcoins";
 import ProductPurchase from "./dashboard/ProductPurchase";
+import TerminalPage from "./dashboard/ToolKit/Terminal";
+import ConfigPage from "./dashboard/ToolKit/ConfigPage";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -430,6 +432,10 @@ const Dashboard = () => {
             <Route path="invoices" element={<Invoices />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="toolkit" element={<Toolkit />} />
+            <Route path="toolkit/terminal" element={<TerminalPage />} />
+            <Route path="toolkit/config" element={<ConfigPage />} />
+            {/* <Route path="toolkit" element={<Toolkit />} />
+            <Route path="toolkit" element={<Toolkit />} /> */}
             <Route path="purchase-netcoins" element={<PurchaseNetcoins />} />
             <Route path="profile" element={<ProfilePage />} />
           </Routes>
