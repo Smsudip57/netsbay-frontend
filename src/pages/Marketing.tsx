@@ -1,7 +1,7 @@
 import { Button } from "../components/ui/button"
 import { Globe, HardDrive, Layers, Server, Shield, Zap, Mail, Phone, MapPin } from "lucide-react"
-import {MarketingNavbar as Navbar} from "../components/marketing/Navbar"
-import Footer from "../components/marketing/footer"
+import { MarketingNavbar as Navbar } from "../components/marketing/Navbar"
+import Footer from "../components/marketing/footer2"
 import PricingCard from "../components/marketing/pricing-card"
 import FaqAccordion from "../components/marketing/faq-accordion"
 import ContactForm from "../components/marketing/contact-form"
@@ -36,21 +36,21 @@ const Star = StarOutline;
 export default function Home() {
   // Use ref to track initialization
   const spiralInitialized = useRef(false);
-  
+
   useEffect(() => {
     // Only run once
     if (spiralInitialized.current) return;
-    
+
     const createSpiral = () => {
       const spiralContainer = document.getElementById("spiral");
       if (!spiralContainer) {
         console.warn("Spiral container not found");
         return;
       }
-      
+
       // Clear existing content
       spiralContainer.innerHTML = '';
-      
+
       const N = 300; // Reduced for better performance
       const SIZE = 400;
       const DOT_RADIUS = 2;
@@ -60,13 +60,13 @@ export default function Home() {
       const CENTER = SIZE / 2;
       const MAX_RADIUS = CENTER - MARGIN - DOT_RADIUS;
       const svgNS = "http://www.w3.org/2000/svg";
-      
+
       const svg = document.createElementNS(svgNS, "svg");
       svg.setAttribute("width", String(SIZE));
       svg.setAttribute("height", String(SIZE));
       svg.setAttribute("viewBox", `0 0 ${SIZE} ${SIZE}`);
       spiralContainer.appendChild(svg);
-      
+
       for (let i = 0; i < N; i++) {
         const idx = i + 0.5;
         const frac = idx / N;
@@ -74,7 +74,7 @@ export default function Home() {
         const theta = idx * GOLDEN_ANGLE;
         const x = CENTER + r * Math.cos(theta);
         const y = CENTER + r * Math.sin(theta);
-        
+
         // Perfect SVG circle
         const c = document.createElementNS(svgNS, "circle");
         c.setAttribute("cx", String(x));  // Convert to string
@@ -82,7 +82,7 @@ export default function Home() {
         c.setAttribute("r", String(DOT_RADIUS));  // Convert to string
         c.setAttribute("fill", "rgba(18, 38, 76, 0.5)");
         svg.appendChild(c);
-        
+
         // Only animate every 3rd dot for better performance
         if (i % 3 === 0) {
           // Radius pulse
@@ -98,7 +98,7 @@ export default function Home() {
           animR.setAttribute("calcMode", "spline");
           animR.setAttribute("keySplines", "0.4 0 0.6 1;0.4 0 0.6 1");
           c.appendChild(animR);
-          
+
           // Opacity pulse
           const animO = document.createElementNS(svgNS, "animate");
           animO.setAttribute("attributeName", "opacity");
@@ -111,13 +111,13 @@ export default function Home() {
           c.appendChild(animO);
         }
       }
-      
+
       spiralInitialized.current = true;
     };
 
     // Delay initialization to ensure DOM is ready
     setTimeout(createSpiral, 500);
-    
+
     // Cleanup function
     return () => {
       const spiralContainer = document.getElementById("spiral");
@@ -134,20 +134,20 @@ export default function Home() {
       reviewCount: 247,
       maxStars: 5
     });
-    
+
     // useEffect(() => {
     //   // Load Trustpilot widget when available
     //   if (window.Trustpilot) {
     //     window.Trustpilot.loadFromElement(ref.current, true);
     //   }
     // }, []);
-    
+
     // Generate star display
     const renderStars = () => {
       const stars = [];
       const fullStars = Math.floor(rating.score);
       const hasHalfStar = rating.score % 1 >= 0.5;
-      
+
       for (let i = 0; i < rating.maxStars; i++) {
         if (i < fullStars) {
           stars.push(<StarFull key={i} className="h-5 w-5 text-yellow-400" />);
@@ -159,13 +159,13 @@ export default function Home() {
       }
       return stars;
     };
-  
+
     return (
       <div className="w-full max-w-3xl">
         <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900/90 shadow-2xl p-5 transition-all hover:border-blue-600/50 group">
           {/* Hidden div to load actual Trustpilot widget data */}
           <div ref={ref} className="hidden trustpilot-widget" data-locale="en-US" data-template-id="5419b6a8b0d04a076446a9ad" data-businessunit-id="your-business-id" data-style-height="24px" data-style-width="100%" data-theme="dark" data-stars="1,2,3,4,5"></div>
-          
+
           {/* Custom UI - Horizontal Layout */}
           <div className="flex items-center">
             {/* Left side with icon and title */}
@@ -173,44 +173,44 @@ export default function Home() {
               <div className="flex flex-col items-center text-center w-36">
                 <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-blue-600/20 mb-2">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-blue-400">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <h3 className="text-lg font-bold text-white">Trustpilot</h3>
               </div>
             </div>
-            
+
             {/* Middle section with stars and rating */}
             <div className="flex-grow px-6">
               <div className="flex flex-col">
                 <div className="flex items-center mb-2">
                   {renderStars()}
                 </div>
-                
+
                 <div className="flex items-baseline">
                   <span className="text-2xl font-bold text-blue-400">{rating.score}</span>
                   <span className="text-gray-400 text-xs ml-1">out of 5</span>
                 </div>
-                
+
                 <p className="text-gray-400 text-sm">
                   Based on <span className="font-medium text-white">{rating.reviewCount}</span> reviews
                 </p>
-                
+
                 <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"
-                    style={{ width: `${(rating.score/rating.maxStars) * 100}%` }}
+                    style={{ width: `${(rating.score / rating.maxStars) * 100}%` }}
                   ></div>
                 </div>
               </div>
             </div>
-            
+
             {/* Right side with button */}
             <div className="flex-shrink-0 flex items-center justify-center pl-6 border-l border-slate-800">
-              <a 
-                href="https://www.trustpilot.com/review/netbay.in" 
-                target="_blank" 
-                rel="noopener" 
+              <a
+                href="https://www.trustpilot.com/review/netbay.in"
+                target="_blank"
+                rel="noopener"
                 className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600/10 border border-blue-600/20 text-blue-400 transition-colors hover:bg-blue-600/20 whitespace-nowrap"
               >
                 <span>Read Reviews</span>
@@ -273,7 +273,7 @@ export default function Home() {
               </div>
             </div>
             <div className="relative lg:mx-auto ">
-            <div id="spiral" className="absolute z-0 top-[-30%] left-[-25%] translate-x--1/4 translate-y--1/3"></div>
+              <div id="spiral" className="absolute z-0 top-[-30%] left-[-25%] translate-x--1/4 translate-y--1/3"></div>
               <div className="relative invisi rounded-xl overflow-hidden border border-slate-800 bg-slate-900/90 shadow-2xl">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -335,10 +335,10 @@ export default function Home() {
                   <div className="h-8 w-24 bg-slate-800/50 rounded"></div>
                 </div>
               ))} */}
-                <div className="flex items-center justify-center">
-                  
-                  <TrustBox />
-                </div>
+              <div className="flex items-center justify-center">
+
+                <TrustBox />
+              </div>
             </div>
           </div>
         </div>

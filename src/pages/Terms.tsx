@@ -1,23 +1,23 @@
 import { MarketingNavbar } from "@/components/marketing/Navbar";
-import Footer from "../components/marketing/footer"
+import Footer from "../components/marketing/footer2"
 import { useEffect } from "react";
 
 const Terms = () => {
 
 
-    useEffect(() => {
-      if (typeof window !== 'undefined') {
-        const handleLoad = () => {
-          window.scrollTo(0, 0);
-        }
-        if (document.readyState === 'complete') {
-          window.scrollTo(0, 0);
-        } else {
-          window.addEventListener('load', handleLoad);
-          return () => window.removeEventListener('load', handleLoad);
-        }
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleLoad = () => {
+        window.scrollTo(0, 0);
       }
-    }, []);
+      if (document.readyState === 'complete') {
+        window.scrollTo(0, 0);
+      } else {
+        window.addEventListener('load', handleLoad);
+        return () => window.removeEventListener('load', handleLoad);
+      }
+    }
+  }, []);
 
 
   return (
@@ -33,14 +33,14 @@ const Terms = () => {
               <strong className="text-white">Effective Date:</strong> May 1, 2024
             </p>
           </div>
-          
+
           {/* Introduction */}
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
             <p className="text-slate-300 leading-relaxed">
               Welcome to <strong className="text-white">Netbay.in</strong>, operated by <strong className="text-white">Technoconnect IT Solutions Pvt Ltd</strong> ("we", "our", or "us"). By using our website and services, you agree to comply with and be bound by the following terms and conditions.
             </p>
           </div>
-          
+
           {/* Sections */}
           <div className="space-y-8">
             {/* Section 1 */}
@@ -53,7 +53,7 @@ const Terms = () => {
                 We provide Virtual Private Server (VPS) hosting solutions and digital infrastructure services. All services are offered under the brand <strong className="text-white">Netbay</strong>.
               </p>
             </section>
-            
+
             {/* Section 2 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -87,7 +87,7 @@ const Terms = () => {
                 </p>
               </div>
             </section>
-            
+
             {/* Sections 3-9 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -98,7 +98,7 @@ const Terms = () => {
                 All services are delivered digitally. VPS provisioning occurs within <strong className="text-white">15 to 30 minutes</strong> after payment confirmation.
               </p>
             </section>
-            
+
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 mr-3 text-sm">4</span>
@@ -108,7 +108,7 @@ const Terms = () => {
                 No physical goods are shipped. All services are provided electronically.
               </p>
             </section>
-            
+
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 mr-3 text-sm">5</span>
@@ -129,7 +129,7 @@ const Terms = () => {
                 </li>
               </ul>
             </section>
-            
+
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 mr-3 text-sm">6</span>
@@ -139,7 +139,7 @@ const Terms = () => {
                 Services may be suspended or terminated for violating terms or engaging in malicious activity. No refund will be provided in such cases.
               </p>
             </section>
-            
+
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 mr-3 text-sm">7</span>
@@ -149,7 +149,7 @@ const Terms = () => {
                 We protect your data using industry standards. No third party, except Indian government or legal authorities under proper orders, will be granted access.
               </p>
             </section>
-            
+
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 mr-3 text-sm">8</span>
@@ -159,7 +159,7 @@ const Terms = () => {
                 We may update our terms. Continued use after changes implies agreement. Notices will be posted on our website.
               </p>
             </section>
-            
+
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
                 <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 mr-3 text-sm">9</span>
@@ -170,7 +170,7 @@ const Terms = () => {
               </p>
             </section>
           </div>
-          
+
           {/* Footer note */}
           <div className="text-center text-slate-400 text-sm mt-12">
             <p>Last updated: May 1, 2024</p>

@@ -1,5 +1,5 @@
 import { MarketingNavbar } from "@/components/marketing/Navbar";
-import Footer from "../components/marketing/footer"
+import Footer from "../components/marketing/footer2"
 import { useEffect } from "react";
 
 const PrivacyPolicy = () => {
@@ -34,14 +34,14 @@ const PrivacyPolicy = () => {
               <strong className="text-white">Effective Date:</strong> May 1, 2024
             </p>
           </div>
-          
+
           {/* Introduction */}
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
             <p className="text-slate-300 leading-relaxed">
               This policy explains how <strong className="text-white">Technoconnect IT Solutions Pvt Ltd</strong> handles your data while using <strong className="text-white">Netbay.in</strong>.
             </p>
           </div>
-          
+
           {/* Sections */}
           <div className="space-y-8">
             {/* Section 1 */}
@@ -69,7 +69,7 @@ const PrivacyPolicy = () => {
                 </li>
               </ul>
             </section>
-            
+
             {/* Section 2 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -95,7 +95,7 @@ const PrivacyPolicy = () => {
                 </li>
               </ul>
             </section>
-            
+
             {/* Section 3 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -108,7 +108,7 @@ const PrivacyPolicy = () => {
                 </p>
               </div>
             </section>
-            
+
             {/* Section 4 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -119,7 +119,7 @@ const PrivacyPolicy = () => {
                 We use SSL, firewalls, encrypted storage, and access control to protect your information. Only authorized staff have access.
               </p>
             </section>
-            
+
             {/* Section 5 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -130,7 +130,7 @@ const PrivacyPolicy = () => {
                 We use cookies for session management and analytics. You can disable cookies in your browser settings.
               </p>
             </section>
-            
+
             {/* Section 6 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -141,7 +141,7 @@ const PrivacyPolicy = () => {
                 We retain data for the life of your account and up to <strong className="text-white">90 days</strong> post-termination, unless required by law. You may request deletion earlier.
               </p>
             </section>
-            
+
             {/* Section 7 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -169,7 +169,7 @@ const PrivacyPolicy = () => {
                 Contact <a href="mailto:contact@netbay.in" className="text-blue-400 hover:text-blue-300 underline">contact@netbay.in</a> to exercise your rights.
               </p>
             </section>
-            
+
             {/* Section 8 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -180,7 +180,7 @@ const PrivacyPolicy = () => {
                 We may update this Privacy Policy. Check this page regularly. Continued use means you accept the changes.
               </p>
             </section>
-            
+
             {/* Section 9 */}
             <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
               <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 flex items-center">
@@ -192,7 +192,7 @@ const PrivacyPolicy = () => {
               </p>
             </section>
           </div>
-          
+
           {/* Footer note */}
           <div className="text-center text-slate-400 text-sm mt-12">
             <p>Last updated: May 1, 2024</p>
